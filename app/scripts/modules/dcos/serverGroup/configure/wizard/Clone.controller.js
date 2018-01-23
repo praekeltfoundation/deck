@@ -21,6 +21,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
       network: require('./network.html'),
       containerSettings: require('./containerSettings.html'),
       environmentVariables: require('./environmentVariables.html'),
+      vaultSecrets: require('./vaultSecrets.html'),
       healthChecks: require('./healthChecks.html'),
       volumes: require('./volumes.html'),
       labels: require('./labels.html'),
@@ -77,6 +78,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
         .register({ page: 'network', subForm: 'networkSettings' })
         .register({ page: 'containerSettings', subForm: 'containerSettings' })
         .register({ page: 'environmentVariables', subForm: 'environmentVariables' })
+        .register({ page: 'vaultSecrets', subForm: 'vaultSecrets' })
         .register({ page: 'healthChecks', subForm: 'healthChecks' })
         .register({ page: 'volumes', subForm: 'volumes' });
     }
