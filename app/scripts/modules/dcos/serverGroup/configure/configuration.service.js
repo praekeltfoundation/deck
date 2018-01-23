@@ -121,6 +121,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.configurat
       };
     }
 
+    //This appears to be where the secrets are initialised. Delete this eventually.
     function configureSecrets(command) {
       var result = { dirty: {} };
 

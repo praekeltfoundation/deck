@@ -74,6 +74,7 @@ export * from './utils';
 export * from './validation';
 
 export * from './widgets';
+export * from './secretManagement';
 
 export * from './core.module';
 

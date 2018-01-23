@@ -7,19 +7,6 @@
               Learn more about variables.
           </a>
       </h5>
-      <div class="col-md-12" ng-if="command.viewState.dirty.secrets">
-        <div class="alert alert-warning">
-          <p><i class="fa fa-exclamation-triangle"></i>
-            The following secrets are not valid for the selected account and were removed:
-          </p>
-          <ul>
-            <li ng-repeat="removed in command.viewState.dirty.secrets">{{removed}}</li>
-          </ul>
-          <p class="text-right">
-            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.secrets = null">Okay</a>
-          </p>
-        </div>
-      </div>
       <table class="table table-condensed packed">
         <tbody>
           <tr ng-repeat="environmentVariable in command.viewModel.env">
@@ -38,25 +25,8 @@
                 <div class="col-md-1 sm-label-right">
                   Value
                 </div>
-                <div class="col-md-9" ng-show="!environmentVariable.isSecret">
-                  <input type="text" class="form-control input-sm" name="varValue" ng-change="environmentVariableController.updateValue($index)"
-                    ng-model="environmentVariable.rawValue" />
-                </div>
-                <div class="col-md-9" ng-show="environmentVariable.isSecret">
-                  <ui-select name="secretSelect" ng-model="environmentVariable.rawValue" search-enabled="true" on-select="environmentVariableController.updateValue($index)" class="form-control input-sm highlight-pristine" ng-required="environmentVariable.isSecret">
-                    <ui-select-match title="{{$select.selected}}">{{$select.selected}}</ui-select-match>
-                    <ui-select-choices repeat="secret in command.backingData.filtered.secrets | filter: $select.search">
-                      <span ng-bind-html="secret | highlight: $select.search"></span>
-                    </ui-select-choices>
-                  </ui-select>
-                </div>
-                <div class="col-md-1 sm-label-right">
-                  Secret
-                </div>
-                <div class="col-md-1 checkbox-inline">
-                  <input type="checkbox" name="secretCheck"
-                        ng-model="environmentVariable.isSecret"
-                        ng-click="environmentVariableController.updateSecret($index, environmentVariable.isSecret)"/>
+                <div class="col-md-9">
+                  <input type="text" class="form-control input-sm" name="varValue" ng-change="environmentVariableController.updateValue($index)" ng-model="environmentVariable.rawValue" />
                 </div>
               </div>
               <div class="col-md-12 sm-label-right">
@@ -71,7 +41,7 @@
           <tr>
             <td colspan="1">
               <button class="add-new col-md-12" ng-click="environmentVariableController.addEnvironmentVariable()">
-                <span class="glyphicon glyphicon-plus-sign"></span> Add Environment Variable
+                <span class="glyphicon glyphicon-plus-sign"></span> Add Another Environment Variable
               </button>
             </td>
           </tr>
