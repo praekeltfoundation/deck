@@ -38,8 +38,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
       secretManagementService.getRoles(backend).then(function successCallback(response) {
         console.info('Success!');
         console.info(JSON.stringify(response,null,'    '));
-        var jsonResponse = JSON.parse(response);
-        $scope.command.viewModel.secrets.policies = jsonResponse['data']['keys'];
+        $scope.command.viewModel.secrets.policies = response['data']['keys'];
       }, function errorCallback(response) {
         console.info('Failure!');
         $scope.command.error = response;
