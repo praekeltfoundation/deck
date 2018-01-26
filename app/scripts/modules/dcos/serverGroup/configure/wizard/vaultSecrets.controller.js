@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
         // split the policy into its constituents
         if (item.name && item.policy && item.backend) {
           var s = item.policy.split('--');
-          sec.append({
+          sec.push({
             'id': item.name,
             'backend': item.backend,
             'endpoint': s[0] + ':' + s[1] + '/' + s[2],
