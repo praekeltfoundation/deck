@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
         console.info(sec);
         }
         item.checkUnique = allNames.filter((name) => item.name !== name);
-        item.requiresSetRole = item.policy && item.policy.toLowerCase().contains('postgres');
+        item.requiresSetRole = item.policy && (item.policy.toLowerCase().indexOf('postgres') >= 0);
       });
       $scope.command.env['VAULT_SECRETS'] = JSON.stringify(sec);
     };
