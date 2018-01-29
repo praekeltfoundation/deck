@@ -13,5 +13,5 @@ export function UpdateGatekeeperPoliciesExecutionDetails(props: IExecutionDetail
 };
 
 export namespace UpdateGatekeeperPoliciesExecutionDetails {
-  export const title = 'waitConfig';
+  export const title = 'updateGatekeeperPoliciesConfig';
 }
