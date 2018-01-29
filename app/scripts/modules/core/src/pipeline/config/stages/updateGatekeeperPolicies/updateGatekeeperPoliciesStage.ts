@@ -102,7 +102,6 @@ module(UPDATE_GATEKEEPER_POLICIES_STAGE, [
       useBaseProvider: true,
       executionLabelComponent: UpdateGatekeeperPoliciesExecutionLabel,
       executionDetailsSections: [ UpdateGatekeeperPoliciesExecutionDetails, ExecutionDetailsTasks ],
-      executionDetailsUrl: require('./updateGatekeeperPoliciesExecutionDetails.html'),
       key: 'updateGatekeeperPolicies',
       label: 'Update Gatekeeper Policies',
       description: 'Update Gatekeeper policies to allow this application to fetch a Vault token that allows it to fetch its Vault secrets',
