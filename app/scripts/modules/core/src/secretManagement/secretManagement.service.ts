@@ -54,6 +54,10 @@ export class SecretManagementService {
     return this.updateGatekeeperPolicies(JSON.stringify(current))
   }
 
+  public getGatekeeperPolicyUpdateUrl(): string {
+    return this.API.baseUrl + '/secrets/gatekeeper';
+  }
+
   private updateGatekeeperPolicies(newPolicies: string = null): IPromise<string> {
     const nPolicies = JSON.parse(newPolicies);
     const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').post(nPolicies);

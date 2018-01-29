@@ -158,7 +158,8 @@ module.exports = angular.module('spinnaker.dcos.serverGroupCommandBuilder.servic
         },
         cloudProvider: 'dcos',
         selectedProvider: 'dcos',
-        viewModel: {}
+        viewModel: {},
+        gatekeeperPolicy: {},
       };
 
       attemptToSetValidAccount(application, defaultAccount, defaultDcosCluster, command);

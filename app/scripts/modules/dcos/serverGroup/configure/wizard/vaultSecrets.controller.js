@@ -94,6 +94,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
         item.requiresSetRole = item.policy && (item.policy.toLowerCase().indexOf('postgres') >= 0);
       });
       $scope.command.env['VAULT_SECRETS'] = JSON.stringify(sec);
+      this.updateGatekeeperPolicies();
     };
     $scope.$watch(() => JSON.stringify($scope.command.viewModel.secrets), this.synchronize);
 
@@ -114,6 +115,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
           'ttl': 6000,
       }
     };
-    secretManagementService.addGatekeeperPolicies(newPolicy);
+    $scope.command.gatekeeperPolicy = newPolicy;
+    //secretManagementService.addGatekeeperPolicies(newPolicy);
     };
   });
