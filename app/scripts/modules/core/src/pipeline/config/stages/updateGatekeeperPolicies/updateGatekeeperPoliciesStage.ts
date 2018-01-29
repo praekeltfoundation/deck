@@ -2,11 +2,7 @@ import { IController, IScope, module } from 'angular';
 
 import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
-import { ExecutionDetailsTasks } from '../core';
 import { SecretManagementService } from '@spinnaker/core';
-
-import { UpdateGatekeeperPoliciesExecutionDetails } from './UpdateGatekeeperPoliciesExecutionDetails';
-import { UpdateGatekeeperPoliciesExecutionLabel } from './UpdateGatekeeperPoliciesExecutionLabel';
 
 export interface IUpdateGatekeeperPoliciesStageViewState {
   waitForCompletion?: boolean;
@@ -95,7 +91,7 @@ module(UPDATE_GATEKEEPER_POLICIES_STAGE, [
 ]).config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       useBaseProvider: true,
-      executionLabelComponent: UpdateGatekeeperPoliciesExecutionLabel,
+//      executionLabelComponent: UpdateGatekeeperPoliciesExecutionLabel,
 //      executionDetailsSections: [ UpdateGatekeeperPoliciesExecutionDetails, ExecutionDetailsTasks ],
       key: 'updateGatekeeperPolicies',
       label: 'Update Gatekeeper Policies',
@@ -105,7 +101,7 @@ module(UPDATE_GATEKEEPER_POLICIES_STAGE, [
       executionDetailsUrl: require('./updateGatekeeperPoliciesExecutionDetails.html'),
       controller: 'UpdateGatekeeperPoliciesStageCtrl',
       controllerAs: '$ctrl',
-      strategy: true,
+      validators: [],
     });
   }).controller('UpdateGatekeeperPoliciesStageCtrl', UpdateGatekeeperPoliciesStage);
 
