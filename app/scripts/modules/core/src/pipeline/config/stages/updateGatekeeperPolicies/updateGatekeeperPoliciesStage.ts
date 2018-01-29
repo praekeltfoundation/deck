@@ -105,6 +105,7 @@ module(UPDATE_GATEKEEPER_POLICIES_STAGE, [
       controller: 'UpdateGatekeeperPoliciesStageCtrl',
       controllerAs: '$ctrl',
       executionDetailsUrl: require('./updateGatekeeperPoliciesExecutionDetails.html'),
+      strategy: true,
     });
   }).controller('UpdateGatekeeperPoliciesStageCtrl', UpdateGatekeeperPoliciesStage);
 
