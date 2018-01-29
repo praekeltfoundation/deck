@@ -8,23 +8,18 @@ import { SecretManagementService } from '@spinnaker/core';
 import { UpdateGatekeeperPoliciesExecutionDetails } from './UpdateGatekeeperPoliciesExecutionDetails';
 import { UpdateGatekeeperPoliciesExecutionLabel } from './UpdateGatekeeperPoliciesExecutionLabel';
 
-export interface IWebhookStageViewState {
+export interface IUpdateGatekeeperPoliciesStageViewState {
   waitForCompletion?: boolean;
   statusUrlResolution: string;
 }
 
-export interface IWebhookStageCommand {
+export interface IUpdateGatekeeperPoliciesStageCommand {
   errorMessage?: string;
   invalid?: boolean;
   payloadJSON: string;
 }
 
-export interface ICustomHeader {
-  key: string;
-  value: string;
-}
-
-export interface IWebhookParameter {
+export interface IUpdateGatekeeperPoliciesParameter {
   name: string;
   label: string;
   description?: string;
@@ -33,11 +28,11 @@ export interface IWebhookParameter {
 }
 
 export class UpdateGatekeeperPoliciesStage implements IController {
-  public command: IWebhookStageCommand;
-  public viewState: IWebhookStageViewState;
+  public command: IUpdateGatekeeperPoliciesStageCommand;
+  public viewState: IUpdateGatekeeperPoliciesStageViewState;
   public preconfiguredProperties: string[];
   public noUserConfigurableFields: boolean;
-  public parameters: IWebhookParameter[] = [];
+  public parameters: IUpdateGatekeeperPoliciesParameter[] = [];
 
   constructor(public stage: any,
               private jsonUtilityService: JsonUtilityService,
@@ -93,7 +88,7 @@ export class UpdateGatekeeperPoliciesStage implements IController {
   }
 }
 
-export const UPDATE_GATEKEEPER_POLICIES_STAGE = 'spinnaker.core.pipeline.stage.updateGatekeeperPolicies';
+export const UPDATE_GATEKEEPER_POLICIES_STAGE = 'spinnaker.core.pipeline.stage.updateGatekeeperPoliciesStage';
 module(UPDATE_GATEKEEPER_POLICIES_STAGE, [
   JSON_UTILITY_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
@@ -101,12 +96,13 @@ module(UPDATE_GATEKEEPER_POLICIES_STAGE, [
     pipelineConfigProvider.registerStage({
       useBaseProvider: true,
       executionLabelComponent: UpdateGatekeeperPoliciesExecutionLabel,
-      executionDetailsSections: [ UpdateGatekeeperPoliciesExecutionDetails, ExecutionDetailsTasks ],
+//      executionDetailsSections: [ UpdateGatekeeperPoliciesExecutionDetails, ExecutionDetailsTasks ],
       key: 'updateGatekeeperPolicies',
       label: 'Update Gatekeeper Policies',
       description: 'Update Gatekeeper policies to allow this application to fetch a Vault token that allows it to fetch its Vault secrets',
       restartable: true,
       templateUrl: require('./updateGatekeeperPoliciesStage.html'),
+      executionDetailsUrl: require('./updateGatekeeperPoliciesExecutionDetails.html'),
       controller: 'UpdateGatekeeperPoliciesStageCtrl',
       controllerAs: '$ctrl',
       strategy: true,
