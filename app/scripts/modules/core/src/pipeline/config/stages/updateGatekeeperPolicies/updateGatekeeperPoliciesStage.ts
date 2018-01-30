@@ -38,7 +38,7 @@ export class UpdateGatekeeperPoliciesStage implements IController {
     'ngInject';
 
     this.stage.method = 'POST';
-    this.stage.payload = this.$scope.command.gatekeeperPolicy;
+    this.stage.payload = this.command.gatekeeperPolicy;
     this.stage.url = this.secretManagementService.getGatekeeperPolicyUpdateUrl()
 
     this.viewState = {
@@ -54,8 +54,6 @@ export class UpdateGatekeeperPoliciesStage implements IController {
 
     const stageConfig = this.pipelineConfig.getStageConfig(this.stage);
     if (stageConfig && stageConfig.configuration) {
-      this.preconfiguredProperties = stageConfig.configuration.preconfiguredProperties || [];
-      this.noUserConfigurableFields = stageConfig.configuration.noUserConfigurableFields;
       this.viewState.waitForCompletion = stageConfig.configuration.waitForCompletion || this.viewState.waitForCompletion;
       this.parameters = stageConfig.configuration.parameters || [];
     }
@@ -90,8 +88,6 @@ module(UPDATE_GATEKEEPER_POLICIES_STAGE, [
   PIPELINE_CONFIG_PROVIDER,
 ]).config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
-//      executionLabelComponent: UpdateGatekeeperPoliciesExecutionLabel,
-//      executionDetailsSections: [ UpdateGatekeeperPoliciesExecutionDetails, ExecutionDetailsTasks ],
       key: 'updateGatekeeperPolicies',
       label: 'Update Gatekeeper Policies',
       description: 'Update Gatekeeper policies to allow this application to fetch a Vault token that allows it to fetch its Vault secrets',
