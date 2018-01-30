@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.updateGatekeeperP
       $scope.stage.parameterValues = {};
     }
 
-    $scope.parameters.forEach((config: any) => {
+    $scope.parameters.forEach((config) => {
       if (!(config.name in $scope.stage.parameterValues) && (config.defaultValue !== null)) {
         $scope.stage.parameterValues[config.name] = config.defaultValue;
       }
