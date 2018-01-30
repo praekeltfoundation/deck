@@ -2,10 +2,10 @@ import * as React from 'react';
 
 import { AsgActionExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
 
-export function DisableAsgExecutionDetails(props: IExecutionDetailsSectionProps) {
-  return <AsgActionExecutionDetailsSection {...props} action="Disabled"/>
+export function UpdateGatekeeperPoliciesExecutionDetails(props: IExecutionDetailsSectionProps) {
+  return <AsgActionExecutionDetailsSection {...props} action="Updated"/>
 };
 
-export namespace DisableAsgExecutionDetails {
-  export const title = 'disableServerGroupConfig';
+export namespace UpdateGatekeeperPoliciesExecutionDetails {
+  export const title = 'updateGatekeeperPoliciesConfig';
 }
