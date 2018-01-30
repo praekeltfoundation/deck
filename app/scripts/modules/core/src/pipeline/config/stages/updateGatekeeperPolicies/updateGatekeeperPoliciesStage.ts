@@ -90,7 +90,6 @@ module(UPDATE_GATEKEEPER_POLICIES_STAGE, [
   PIPELINE_CONFIG_PROVIDER,
 ]).config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
-      useBaseProvider: true,
 //      executionLabelComponent: UpdateGatekeeperPoliciesExecutionLabel,
 //      executionDetailsSections: [ UpdateGatekeeperPoliciesExecutionDetails, ExecutionDetailsTasks ],
       key: 'updateGatekeeperPolicies',
