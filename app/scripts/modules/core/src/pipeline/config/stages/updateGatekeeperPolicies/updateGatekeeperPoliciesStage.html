@@ -2,6 +2,10 @@
   <div class="form-group" ng-if="$ctrl.displayField('waitForCompletion')">
     <div class="col-md-8 col-md-offset-1">
       <div class="checkbox pull-left">
+        <stage-config-field label="$ctrl.stage.url">
+        </stage-config-field>
+        <stage-config-field label="$ctrl.stage.payload">
+        </stage-config-field>
         <label>
           <input type="checkbox"
                  name="waitForCompletion"
