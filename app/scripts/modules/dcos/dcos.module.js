@@ -30,7 +30,6 @@ module.exports = angular.module('spinnaker.dcos', [
   require('./pipeline/stages/runJob/runJobStage.js').name,
   require('./pipeline/stages/scaleDownCluster/dcosScaleDownClusterStage.js').name,
   require('./pipeline/stages/shrinkCluster/dcosShrinkClusterStage.js').name,
-  require('../core/src/pipeline/config/stages/updateGatekeeperPolicies/updateGatekeeperPoliciesStage.ts').name,
   require('./proxy/ui.service.js').name,
   require('./serverGroup/configure/CommandBuilder.js').name,
   require('./serverGroup/configure/configure.dcos.module.js').name,
