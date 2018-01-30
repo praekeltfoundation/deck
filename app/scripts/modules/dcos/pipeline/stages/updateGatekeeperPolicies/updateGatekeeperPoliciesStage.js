@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.updateGatekeeperP
       validators: [],
       strategy: true,
     });
-  }).controller('UpdateGatekeeperPoliciesStageCtrl', function($scope, secretManagementService, pipelineConfigProvider, jsonUtilityService) {
+  }).controller('updateGatekeeperPoliciesStageCtrl', function($scope, secretManagementService, pipelineConfigProvider, jsonUtilityService) {
 
     $scope.stage.method = 'POST';
     $scope.stage.payload = $scope.command.gatekeeperPolicy;
