@@ -1,30 +1,30 @@
 <div class="form-horizontal">
-  <div class="form-group" ng-if="$ctrl.displayField('waitForCompletion')">
+  <div class="form-group" ng-if="displayField('waitForCompletion')">
     <div class="col-md-8 col-md-offset-1">
       <div class="checkbox pull-left">
-        <stage-config-field label="$ctrl.stage.url">
+        <stage-config-field label="stage.url">
         </stage-config-field>
-        <stage-config-field label="$ctrl.stage.payload">
+        <stage-config-field label="stage.payload">
         </stage-config-field>
         <label>
           <input type="checkbox"
                  name="waitForCompletion"
-                 ng-model="$ctrl.viewState.waitForCompletion"
-                 ng-change="$ctrl.waitForCompletionChanged()"/>
+                 ng-model="viewState.waitForCompletion"
+                 ng-change="waitForCompletionChanged()"/>
           <strong>Wait for completion</strong>
           <help-field key="pipeline.config.webhook.waitForCompletion"></help-field>
         </label>
       </div>
     </div>
   </div>
-  <div ng-class="{collapse: $ctrl.viewState.waitForCompletion !== true, 'collapse.in': !$ctrl.viewState.waitForCompletion === true}">
-    <div class="form-group" ng-if="$ctrl.displayField('statusUrlResolution')">
+  <div ng-class="{collapse: viewState.waitForCompletion !== true, 'collapse.in': !viewState.waitForCompletion === true}">
+    <div class="form-group" ng-if="displayField('statusUrlResolution')">
       <div class="col-md-3 sm-label-right">Status URL</div>
       <div class="col-md-9 radio">
         <label>
           <input type="radio"
-                 ng-model="$ctrl.viewState.statusUrlResolution"
-                 ng-change="$ctrl.statusUrlResolutionChanged()"
+                 ng-model="viewState.statusUrlResolution"
+                 ng-change="statusUrlResolutionChanged()"
                  value="getMethod"
                  id="statusUrlResolutionIsGetMethod"/>
           GET method against Gatekeeper URL
@@ -34,8 +34,8 @@
       <div class="col-md-9 col-md-offset-3 radio">
         <label>
           <input type="radio"
-                 ng-model="$ctrl.viewState.statusUrlResolution"
-                 ng-change="$ctrl.statusUrlResolutionChanged()"
+                 ng-model="viewState.statusUrlResolution"
+                 ng-change="statusUrlResolutionChanged()"
                  value="locationHeader"
                  id="statusUrlResolutionIsLocationHeader"/>
           From the Location header
@@ -45,20 +45,20 @@
       <div class="col-md-9 col-md-offset-3 radio">
         <label>
           <input type="radio"
-                 ng-model="$ctrl.viewState.statusUrlResolution"
-                 ng-change="$ctrl.statusUrlResolutionChanged()"
+                 ng-model="viewState.statusUrlResolution"
+                 ng-change="statusUrlResolutionChanged()"
                  value="webhookResponse"
                  id="statusUrlResolutionIsWebhookResponse"/>
           From webhook's response
           <help-field key="pipeline.config.webhook.useStatusUrlFromLocationHeaderFalse"></help-field>
         </label>
       </div>
-      <div class="form-group" ng-if="$ctrl.viewState.statusUrlResolution === 'webhookResponse' && $ctrl.displayField('statusUrlJsonPath')">
+      <div class="form-group" ng-if="viewState.statusUrlResolution === 'webhookResponse' && displayField('statusUrlJsonPath')">
         <div class="col-md-offset-3">
           <stage-config-field label="Status URL path" help-key="pipeline.config.webhook.statusUrlJsonPath">
             <input type="text"
                    class="form-control input-sm"
-                   ng-model="$ctrl.stage.statusUrlJsonPath"
+                   ng-model="stage.statusUrlJsonPath"
                    required/>
           </stage-config-field>
         </div>
@@ -66,38 +66,38 @@
     </div>
     <stage-config-field label="Status JsonPath"
                         help-key="pipeline.config.webhook.statusJsonPath"
-                        ng-if="$ctrl.displayField('statusJsonPath')">
+                        ng-if="displayField('statusJsonPath')">
       <input type="text"
              class="form-control input-sm"
-             ng-model="$ctrl.stage.statusJsonPath"/>
+             ng-model="stage.statusJsonPath"/>
     </stage-config-field>
     <stage-config-field label="Progress location"
                         help-key="pipeline.config.webhook.progressJsonPath"
-                        ng-if="$ctrl.displayField('progressJsonPath')">
+                        ng-if="displayField('progressJsonPath')">
       <input type="text"
              class="form-control input-sm"
-             ng-model="$ctrl.stage.progressJsonPath"/>
+             ng-model="stage.progressJsonPath"/>
     </stage-config-field>
     <stage-config-field label="SUCCESS status mapping"
                         help-key="pipeline.config.webhook.successStatuses"
-                        ng-if="$ctrl.displayField('successStatuses')">
+                        ng-if="displayField('successStatuses')">
       <input type="text"
              class="form-control input-sm"
-             ng-model="$ctrl.stage.successStatuses"/>
+             ng-model="stage.successStatuses"/>
     </stage-config-field>
     <stage-config-field label="CANCELED status mapping"
                         help-key="pipeline.config.webhook.canceledStatuses"
-                        ng-if="$ctrl.displayField('canceledStatuses')">
+                        ng-if="displayField('canceledStatuses')">
       <input type="text"
              class="form-control input-sm"
-             ng-model="$ctrl.stage.canceledStatuses"/>
+             ng-model="stage.canceledStatuses"/>
     </stage-config-field>
     <stage-config-field label="TERMINAL status mapping"
                         help-key="pipeline.config.webhook.terminalStatuses"
-                        ng-if="$ctrl.displayField('terminalStatuses')">
+                        ng-if="displayField('terminalStatuses')">
       <input type="text"
              class="form-control input-sm"
-             ng-model="$ctrl.stage.terminalStatuses"/>
+             ng-model="stage.terminalStatuses"/>
     </stage-config-field>
   </div>
 </div>

@@ -22,7 +22,6 @@ import { SHRINK_CLUSTER_STAGE } from './config/stages/shrinkCluster/shrinkCluste
 import { STAGE_CORE_MODULE } from './config/stages/core/stage.core.module';
 import { TRAVIS_STAGE_MODULE } from './config/stages/travis/travisStage.module';
 import { UPDATE_GATEKEEPER_POLICIES_STAGE } from './config/stages/updateGatekeeperPolicies/updateGatekeeperPoliciesStage';
-import { UPDATE_GATEKEEPER_POLICIES_STAGE_MODULE } from './config/stages/updateGatekeeperPolicies/updateGatekeeperPoliciesStage.module';
 import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
 import { WAIT_STAGE } from './config/stages/wait/waitStage';
 import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
@@ -61,7 +60,6 @@ module(PIPELINE_MODULE, [
   GROUP_STAGE_MODULE,
   TRAVIS_STAGE_MODULE,
   WEBHOOK_STAGE_MODULE,
-  UPDATE_GATEKEEPER_POLICIES_STAGE_MODULE,
   UPDATE_GATEKEEPER_POLICIES_STAGE,
   UNMATCHED_STAGE_TYPE_STAGE,
   require('./config/stages/bake/bakeStage.module').name,
