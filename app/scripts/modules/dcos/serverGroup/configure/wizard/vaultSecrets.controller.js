@@ -104,7 +104,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
       var vaultPolicies = ['default'];
       $scope.command.viewModel.secrets.forEach((item) => {
         if (item.name && item.policy && item.backend) {
-            vaultPolicies.append('spinnaker-app-' + item.policy);
+            vaultPolicies.push('spinnaker-app-' + item.policy);
         }
       });
       var newPolicy = {
