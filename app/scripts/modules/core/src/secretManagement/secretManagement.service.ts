@@ -55,11 +55,11 @@ export class SecretManagementService {
   }
 
   public getGatekeeperPolicyUpdateUrl(): string {
-    return this.API.baseUrl + '/secrets/gatekeeper';
+    return this.API.baseUrl + '/secrets/gatekeeper/policies';
   }
 
   private updateGatekeeperPolicies(newPolicies: any): IPromise<string> {
-    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').post(newPolicies);
+    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').post(newPolicies);
     if (!response) {
       return this.$q.reject('An error occurred when attempting to update the Gatekeeper policies in Vault.');
     }
