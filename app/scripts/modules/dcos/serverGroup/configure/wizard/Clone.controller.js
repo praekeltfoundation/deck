@@ -3,16 +3,19 @@
 const angular = require('angular');
 
 import { V2_MODAL_WIZARD_SERVICE, SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { SecretManagementService, SECRET_MANAGEMENT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
   SERVER_GROUP_WRITER,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
+  SECRET_MANAGEMENT_SERVICE,
   require('../configuration.service.js').name,
 ])
   .controller('dcosCloneServerGroupController', function($scope, $uibModalInstance, $q, $state,
                                                                serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
                                                                dcosServerGroupConfigurationService,
+                                                               secretManagementService,
                                                                serverGroupCommand, application, title, $timeout,
                                                                wizardSubFormValidation) {
     $scope.pages = {
@@ -101,6 +104,24 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
       }
       $scope.taskMonitor.submit(
         function() {
+          // put Gatekeeper updates here because for now this is a DC/OS feature.
+          // in the future this gets to live in the serverGroup cloning place.
+            secretManagementService.addGatekeeperPolicies(command.gatekeeperPolicy).then(function successCallback(response) {
+            console.info('Success!');
+            console.info(JSON.stringify(response,null,'    '));
+            }, function errorCallback(response) {
+            console.info('Failure!');
+            $scope.command.error = response;
+            console.info(JSON.stringify(response,null,'    '));
+          });
+            secretManagementService.reloadGatekeeperPolicies().then(function successCallback(response) {
+            console.info('Success!');
+            console.info(JSON.stringify(response,null,'    '));
+            }, function errorCallback(response) {
+            console.info('Failure!');
+            $scope.command.error = response;
+            console.info(JSON.stringify(response,null,'    '));
+          });
           return serverGroupWriter.cloneServerGroup(command, application);
         }
       );

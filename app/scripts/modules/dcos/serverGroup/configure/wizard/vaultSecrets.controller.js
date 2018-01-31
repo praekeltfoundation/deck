@@ -98,7 +98,6 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
     };
     $scope.$watch(() => JSON.stringify($scope.command.viewModel.secrets), this.synchronize);
 
-    // this probably needs to be moved elsewhere.
     // We need to pre-set a couple of Vault ACL policies for each dynamic secret.
     this.updateGatekeeperPolicies = () => {      
       var appname = $scope.command.application + '*';
@@ -107,7 +106,6 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
         if (item.name && item.policy && item.backend) {
             vaultPolicies.append('spinnaker-app-' + item.policy);
         }
-          console.info(vaultPolicies);
       });
       var newPolicy = {
         [appname]: {
@@ -115,7 +113,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
           'ttl': 6000,
       }
     };
+    console.info(newPolicy);
     $scope.command.gatekeeperPolicy = newPolicy;
-    //secretManagementService.addGatekeeperPolicies(newPolicy);
     };
   });
