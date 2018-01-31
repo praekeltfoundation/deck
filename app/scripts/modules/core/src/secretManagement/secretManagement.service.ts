@@ -24,43 +24,42 @@ export class SecretManagementService {
     return roles;
   }
 
-  public addGatekeeperPolicies(newPolicies: string = null): IPromise<string> {
+  public addGatekeeperPolicies(newPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get();
     if (!gkPolicies) {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     }
-    const current = JSON.parse(gkPolicies.toString());
-    const npolicies = JSON.parse(newPolicies);
+    const current = JSON.parse(JSON.stringify(gkPolicies));
+    const npolicies = newPolicies;
 
-    Object.keys(npolicies).forEach((key) => {
+    Object.keys(npolicies).forEach((key: string) => {
       // If key already exists, we overwrite it
       current[key] = npolicies[key];
     })
-    return this.updateGatekeeperPolicies(JSON.stringify(current))
+    return this.updateGatekeeperPolicies(current)
   }
 
-  public removeGatekeeperPolicies(removedPolicies: string = null): IPromise<string> {
+  public removeGatekeeperPolicies(removedPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get();
     if (!gkPolicies) {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     }
-    const current = JSON.parse(gkPolicies.toString());
-    const rpolicies = JSON.parse(removedPolicies);
+    const current = JSON.parse(JSON.stringify(gkPolicies));
+    const rpolicies = removedPolicies;
 
-    Object.keys(rpolicies).forEach((key) => {
+    Object.keys(rpolicies).forEach((key: string) => {
       // If key exists, we remove it
       delete current[key];
     })
-    return this.updateGatekeeperPolicies(JSON.stringify(current))
+    return this.updateGatekeeperPolicies(current)
   }
 
   public getGatekeeperPolicyUpdateUrl(): string {
     return this.API.baseUrl + '/secrets/gatekeeper';
   }
 
-  private updateGatekeeperPolicies(newPolicies: string = null): IPromise<string> {
-    const nPolicies = JSON.parse(newPolicies);
-    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').post(nPolicies);
+  private updateGatekeeperPolicies(newPolicies: any): IPromise<string> {
+    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').post(newPolicies);
     if (!response) {
       return this.$q.reject('An error occurred when attempting to update the Gatekeeper policies in Vault.');
     }
