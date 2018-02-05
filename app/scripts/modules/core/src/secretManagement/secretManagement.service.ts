@@ -27,21 +27,21 @@ export class SecretManagementService {
   public addGatekeeperPolicies(newPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
     let merged = {};
-    gkPolicies.then((data) => {
+    return gkPolicies.then((data) => {
       const obj = JSON.stringify(data)
       const current = JSON.parse(obj)['data'];
       const npolicies = newPolicies;
       merged = angular.merge(current, npolicies)
+      return this.updateGatekeeperPolicies(merged);
     }, () => {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     });
-    return this.updateGatekeeperPolicies(merged);
   }
 
   public removeGatekeeperPolicies(removedPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
     let current = JSON.parse('{}');
-    gkPolicies.then((data) => {
+    return gkPolicies.then((data) => {
       const obj = JSON.stringify(data)
       current = JSON.parse(obj)['data'];
       const rpolicies = removedPolicies;
@@ -49,10 +49,10 @@ export class SecretManagementService {
       // If key exists, we remove it
       delete current[key];
       });
+      return this.updateGatekeeperPolicies(current);
     }, () => {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     });
-    return this.updateGatekeeperPolicies(current);
   }
 
   public getGatekeeperPolicyUpdateUrl(): string {
