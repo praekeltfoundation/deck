@@ -683,6 +683,10 @@ angular@>=1.6.5:
   version "1.6.6"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.6.tgz#fd5a3cfb437ce382d854ee01120797978527cb64"
 
+angular@^1.6.9:
+  version "1.6.9"
+  resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.9.tgz#bc812932e18909038412d594a5990f4bb66c0619"
+
 angulartics-google-analytics@^0.2.0:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/angulartics-google-analytics/-/angulartics-google-analytics-0.2.1.tgz#85c841e35bbb6a2d5a3d10a17cdb71b2f2ca14bc"
@@ -4344,9 +4348,9 @@ jquery-ui@1.12.0:
   version "1.12.0"
   resolved "https://registry.yarnpkg.com/jquery-ui/-/jquery-ui-1.12.0.tgz#59c6037a2d9c57e9a2521a9b7a497116d41b4246"
 
-jquery@2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-2.1.4.tgz#228bde698a0c61431dc2630a6a154f15890d2317"
+jquery@^2.1.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-2.2.4.tgz#2c89d6889b5eac522a7eea32c14521559c6cbf02"
 
 js-base64@^2.1.9:
   version "2.1.9"
