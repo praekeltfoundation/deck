@@ -27,30 +27,30 @@ export class SecretManagementService {
   public addGatekeeperPolicies(newPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
     let merged = {};
-    gkPolicies.then((data) => {
-      const c = data;
-      const current = JSON.parse(JSON.stringify(c));
+    gkPolicies.then((data: string) => {
+      const current = JSON.parse(data)['data'];
       const npolicies = newPolicies;
       merged = angular.merge(current, npolicies)
     }, () => {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     });
-    return this.updateGatekeeperPolicies(merged)
+    return this.updateGatekeeperPolicies(merged);
   }
 
   public removeGatekeeperPolicies(removedPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
-    if (!gkPolicies) {
-      return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
-    }
-    const current = JSON.parse(JSON.stringify(gkPolicies));
-    const rpolicies = removedPolicies;
-
-    Object.keys(rpolicies).forEach((key: string) => {
+    let current = JSON.parse('{}');
+    gkPolicies.then((data: string) => {
+      current = JSON.parse(data)['data'];
+      const rpolicies = removedPolicies;
+      Object.keys(rpolicies).forEach((key: string) => {
       // If key exists, we remove it
       delete current[key];
-    })
-    return this.updateGatekeeperPolicies(current)
+      });
+    }, () => {
+      return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
+    });
+    return this.updateGatekeeperPolicies(current);
   }
 
   public getGatekeeperPolicyUpdateUrl(): string {
