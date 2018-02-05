@@ -27,8 +27,9 @@ export class SecretManagementService {
   public addGatekeeperPolicies(newPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
     let merged = {};
-    gkPolicies.then((data: string) => {
-      const current = JSON.parse(data)['data'];
+    gkPolicies.then((data) => {
+      const obj = JSON.stringify(data)
+      const current = JSON.parse(obj)['data'];
       const npolicies = newPolicies;
       merged = angular.merge(current, npolicies)
     }, () => {
@@ -40,8 +41,9 @@ export class SecretManagementService {
   public removeGatekeeperPolicies(removedPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
     let current = JSON.parse('{}');
-    gkPolicies.then((data: string) => {
-      current = JSON.parse(data)['data'];
+    gkPolicies.then((data) => {
+      const obj = JSON.stringify(data)
+      current = JSON.parse(obj)['data'];
       const rpolicies = removedPolicies;
       Object.keys(rpolicies).forEach((key: string) => {
       // If key exists, we remove it
