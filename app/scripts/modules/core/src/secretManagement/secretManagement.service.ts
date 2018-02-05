@@ -31,8 +31,8 @@ export class SecretManagementService {
     }
     const current = JSON.parse(JSON.stringify(gkPolicies));
     const npolicies = newPolicies;
-    const merged = angular.merge(current, npolicies);
-    return this.updateGatekeeperPolicies(merged)
+    current.extend(npolicies)
+    return this.updateGatekeeperPolicies(current)
   }
 
   public removeGatekeeperPolicies(removedPolicies: any): IPromise<string> {
