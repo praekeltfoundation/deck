@@ -26,12 +26,15 @@ export class SecretManagementService {
 
   public addGatekeeperPolicies(newPolicies: any): IPromise<string> {
     const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
-    if (!gkPolicies) {
+    let merged = {};
+    gkPolicies.then((data) => {
+      const c = data;
+      const current = JSON.parse(JSON.stringify(c));
+      const npolicies = newPolicies;
+      merged = angular.merge(current, npolicies)
+    }, () => {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
-    }
-    const current = JSON.parse(JSON.stringify(gkPolicies));
-    const npolicies = newPolicies;
-    const merged = angular.merge(current, npolicies)
+    });
     return this.updateGatekeeperPolicies(merged)
   }
 
