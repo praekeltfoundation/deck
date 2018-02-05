@@ -67,7 +67,7 @@ export class SecretManagementService {
   }
 
   public reloadGatekeeperPolicies(): IPromise<string> {
-    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').one('reload').post({});
+    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').one('reload').post();
     if (!response) {
       return this.$q.reject('An error occurred when attempting to get Gatekeeper to reload its policies from Vault.');
     }

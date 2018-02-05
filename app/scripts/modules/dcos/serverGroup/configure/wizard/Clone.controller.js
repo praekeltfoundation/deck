@@ -107,20 +107,18 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
           // put Gatekeeper updates here because for now this is a DC/OS feature.
           // in the future this gets to live in the serverGroup cloning place.
             secretManagementService.addGatekeeperPolicies(command.gatekeeperPolicy).then(function successCallback(response) {
-            console.info('Success!');
-            console.info(JSON.stringify(response,null,'    '));
-            }, function errorCallback(response) {
+              console.info('Success!');
+              console.info(JSON.stringify(response,null,'    '));
+              secretManagementService.reloadGatekeeperPolicies().then(function successCallback(response) {
+                console.info('Success!');
+                console.info(JSON.stringify(response,null,'    '));
+              }, function errorCallback(response) {
+                console.info('Failure!');
+                $scope.command.error = response.status;
+                console.info(JSON.stringify(response.status,null,'    '));
+            });}, function errorCallback(response) {
             console.info('Failure!');
-            $scope.command.error = response;
-            console.info(JSON.stringify(response,null,'    '));
-          });
-            secretManagementService.reloadGatekeeperPolicies().then(function successCallback(response) {
-            console.info('Success!');
-            console.info(JSON.stringify(response,null,'    '));
-            }, function errorCallback(response) {
-            console.info('Failure!');
-            $scope.command.error = response;
-            console.info(JSON.stringify(response,null,'    '));
+            console.info(JSON.stringify(response.status,null,'    '));
           });
           return serverGroupWriter.cloneServerGroup(command, application);
         }
