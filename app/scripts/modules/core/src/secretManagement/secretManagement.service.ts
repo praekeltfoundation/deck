@@ -31,7 +31,7 @@ export class SecretManagementService {
     }
     const current = JSON.parse(JSON.stringify(gkPolicies));
     const npolicies = newPolicies;
-    current.extend(npolicies)
+    angular.extend(current, npolicies)
     return this.updateGatekeeperPolicies(current)
   }
 
