@@ -31,11 +31,7 @@ export class SecretManagementService {
     }
     const current = JSON.parse(JSON.stringify(gkPolicies));
     const npolicies = newPolicies;
-
-    Object.keys(npolicies).forEach((key: string) => {
-      // If key already exists, we overwrite it
-      current[key] = npolicies[key];
-    })
+    current.merge(npolicies)
     return this.updateGatekeeperPolicies(current)
   }
 
