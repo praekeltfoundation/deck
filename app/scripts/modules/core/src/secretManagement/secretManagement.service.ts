@@ -25,7 +25,7 @@ export class SecretManagementService {
   }
 
   public addGatekeeperPolicies(newPolicies: any): IPromise<string> {
-    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get();
+    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
     if (!gkPolicies) {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     }
@@ -40,7 +40,7 @@ export class SecretManagementService {
   }
 
   public removeGatekeeperPolicies(removedPolicies: any): IPromise<string> {
-    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get();
+    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
     if (!gkPolicies) {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     }
@@ -67,7 +67,7 @@ export class SecretManagementService {
   }
 
   public reloadGatekeeperPolicies(): IPromise<string> {
-    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').one('reload').post();
+    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').one('reload').post({});
     if (!response) {
       return this.$q.reject('An error occurred when attempting to get Gatekeeper to reload its policies from Vault.');
     }
