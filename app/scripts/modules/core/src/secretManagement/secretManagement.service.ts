@@ -8,7 +8,7 @@ export class SecretManagementService {
   constructor(private API: Api, private $q: IQService) { 'ngInject'; }
 
   public getVaultPolicies(): IPromise<string> {
-    const acls: IPromise<string> = this.API.one('secrets').one('vaultpolicies').get({});
+    const acls: IPromise<string> = this.API.one('secrets').one('vaultpolicies').get();
     if (!acls) {
       return this.$q.reject('An error occurred when retrieving the list of Vault policies for Spinnaker applications.');
     }
@@ -16,7 +16,7 @@ export class SecretManagementService {
   }
 
   public getRoles(backend: string = null): IPromise<string> {
-    const roles: IPromise<string> = this.API.one('secrets').one(backend).one('roles').get({});
+    const roles: IPromise<string> = this.API.one('secrets').one(backend).one('roles').get();
 
     if (!roles) {
       return this.$q.reject('An error occurred when retrieving backend policies for ' + backend + '.');
@@ -25,7 +25,7 @@ export class SecretManagementService {
   }
 
   public addGatekeeperPolicies(newPolicies: any): IPromise<string> {
-    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
+    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get();
     let merged = {};
     return gkPolicies.then((resp) => {
       const obj = JSON.stringify(resp)
@@ -39,7 +39,7 @@ export class SecretManagementService {
   }
 
   public removeGatekeeperPolicies(removedPolicies: any): IPromise<string> {
-    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get({});
+    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get();
     let current = JSON.parse('{}');
     return gkPolicies.then((resp) => {
       const obj = JSON.stringify(resp)
