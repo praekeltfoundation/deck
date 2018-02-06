@@ -37,7 +37,8 @@ export class Api {
     this.defaultParams = {
       timeout: SETTINGS.pollSchedule * 2 + 5000,
       headers: {
-        'X-RateLimit-App': 'deck'
+        'X-RateLimit-App': 'deck',
+        'Content-Type': 'application/json',
       }
     };
   }
