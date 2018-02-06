@@ -39,6 +39,7 @@ export class Api {
       headers: {
         'X-RateLimit-App': 'deck',
         'Content-Type': 'application/json',
+        ''
       }
     };
   }

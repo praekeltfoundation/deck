@@ -32,7 +32,7 @@ export class SecretManagementService {
       const current = JSON.parse(obj)['data'];
       const npolicies = newPolicies;
       merged = angular.merge(current, npolicies)
-      return this.updateGatekeeperPolicies(merged);
+      return this.updateGatekeeperPolicies(JSON.stringify(merged));
     }, () => {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     });
@@ -49,7 +49,7 @@ export class SecretManagementService {
       // If key exists, we remove it
       delete current[key];
       });
-      return this.updateGatekeeperPolicies(current);
+      return this.updateGatekeeperPolicies(JSON.stringify(current));
     }, () => {
       return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
     });
