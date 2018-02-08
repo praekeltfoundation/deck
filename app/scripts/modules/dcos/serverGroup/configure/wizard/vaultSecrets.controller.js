@@ -94,6 +94,8 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
         item.requiresSetRole = item.policy && (item.policy.toLowerCase().indexOf('postgres') >= 0);
       });
       $scope.command.env['VAULT_SECRETS'] = JSON.stringify(sec);
+      $scope.command.env['VAULTKEEPER_CONFIG'] = $scope.vaultkeeperConfig;
+      console.info($scope.command.env['VAULTKEEPER_CONFIG']);
       this.updateGatekeeperPolicies();
     };
     $scope.$watch(() => JSON.stringify($scope.command.viewModel.secrets), this.synchronize);
