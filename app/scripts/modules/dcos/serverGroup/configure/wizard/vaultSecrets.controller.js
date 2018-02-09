@@ -83,7 +83,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
             'id': item.name,
             'backend': item.backend,
             'endpoint': s[0] + ':' + s[1] + '/' + s[2],
-            'vault_path': 'vault/path',
+            'vault_path': item.backend + '/creds/' + item.policy,
             'schema': s[3],
             'policy': item.policy,
             'set_role': item.setRole,
