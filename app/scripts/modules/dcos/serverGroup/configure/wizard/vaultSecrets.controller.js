@@ -79,15 +79,29 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
         // split the policy into its constituents
         if (item.name && item.policy && item.backend) {
           var s = item.policy.split('--');
-          sec.push({
-            'id': item.name,
-            'backend': item.backend,
-            'endpoint': s[0] + ':' + s[1] + '/' + s[2],
-            'vault_path': item.backend + '/creds/' + item.policy,
-            'schema': s[3],
-            'policy': item.policy,
-            'set_role': item.setRole,
-          });
+          // database policies will have an extra key specifying the database type
+          if (s.length == 5) {
+            sec.push({
+              'id': item.name,
+              'backend': s[0],
+              'endpoint': s[1] + ':' + s[2] + '/' + s[3],
+              'vault_path': item.backend + '/creds/' + item.policy,
+              'schema': s[3],
+              'policy': item.policy,
+              'set_role': item.setRole,
+            });
+          }
+          else if (s.length == 4) {
+            sec.push({
+              'id': item.name,
+              'backend': item.policy,
+              'endpoint': s[0] + ':' + s[1] + '/' + s[2],
+              'vault_path': item.backend + '/creds/' + item.policy,
+              'schema': s[3],
+              'policy': item.policy,
+              'set_role': item.setRole,
+            });
+          }
         console.info(sec);
         }
         item.checkUnique = allNames.filter((name) => item.name !== name);
@@ -95,6 +109,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
       });
       $scope.command.env['VAULT_SECRETS'] = JSON.stringify(sec);
       $scope.command.env['VAULTKEEPER_CONFIG'] = $scope.vaultkeeperConfig;
+      console.info($scope.command.env['VAULT_SECRETS']);
       console.info($scope.command.env['VAULTKEEPER_CONFIG']);
       this.updateGatekeeperPolicies();
     };
