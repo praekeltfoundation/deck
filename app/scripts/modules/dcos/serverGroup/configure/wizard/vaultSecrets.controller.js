@@ -72,15 +72,24 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
     };
 
     this.synchronize = () => {
+      var vaultkeeperConfig = {};
+
+      if ($scope.vaultkeeper.entrypoint) {
+            vaultkeeperConfig['entry_cmd'] = $scope.vaultkeeper.entrypoint;
+            vaultkeeperConfig['output_path'] = $scope.vaultkeeper.outputPath;
+            vaultkeeperConfig['refresh_interval'] = $scope.vaultkeeper.refresh_interval;
+            vaultkeeperConfig['lease_increment'] = $scope.vaultkeeper.lease_increment;
+            vaultkeeperConfig['renewal_grace'] = $scope.vaultkeeper.renewal_grace;
+          }
+
       let allNames = $scope.command.viewModel.secrets.map((item) => item.name);
-      // $scope.command.secrets = {};
       var sec = [];
       $scope.command.viewModel.secrets.forEach((item) => {
         // split the policy into its constituents
         if (item.name && item.policy && item.backend) {
           var s = item.policy.split('--');
           // database policies will have an extra key specifying the database type
-          if (s.length == 5) {
+          if (item.backend == 'database') {
             sec.push({
               'id': item.name,
               'backend': s[0],
@@ -91,7 +100,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
               'set_role': item.setRole,
             });
           }
-          else if (s.length == 4) {
+          else {
             sec.push({
               'id': item.name,
               'backend': item.policy,
@@ -108,7 +117,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
         item.requiresSetRole = item.policy && (item.policy.toLowerCase().indexOf('postgres') >= 0);
       });
       $scope.command.env['VAULT_SECRETS'] = JSON.stringify(sec);
-      $scope.command.env['VAULTKEEPER_CONFIG'] = $scope.vaultkeeperConfig;
+      $scope.command.env['VAULTKEEPER_CONFIG'] = JSON.stringify(vaultkeeperConfig);
       console.info($scope.command.env['VAULT_SECRETS']);
       console.info($scope.command.env['VAULTKEEPER_CONFIG']);
       this.updateGatekeeperPolicies();

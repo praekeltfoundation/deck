@@ -29,6 +29,15 @@ const helpContents: { [key: string]: string } = {
   'dcos.serverGroup.healthCheck.timeoutSeconds': 'Timeout in seconds.',
   'dcos.serverGroup.docker.image': 'Configure your Docker container. Use DockerHub to find popular repositories.',
   'dcos.serverGroup.forceDeployment': 'This can be used to forcefully stop an existing deployment currently running for this server group in DC/OS (as deployments within DC/OS will block anymore from starting for that app).',
+  'dcos.serverGroup.vaultSecrets.vaultkeeperConfiguration': 'Used by the Vaultkeeper agent for the application to manage dynamic secrets from Vault.',
+  'dcos.serverGroup.vaultSecrets.applicationEntrypoint': 'Shell command used to launch the application.',
+  'dcos.serverGroup.vaultSecrets.outputPath': 'Where the fetched Vault secrets will reside on the application\'s filesystem.',
+  'dcos.serverGroup.vaultSecrets.refreshInterval': 'Period to check if dynamic secret leases are still valid.',
+  'dcos.serverGroup.vaultSecrets.leaseIncrement': 'Period by which to extend existing leases.',
+  'dcos.serverGroup.vaultSecrets.renewalGrace': 'Time to expiry before Vaultkeeper renews the lease.',
+  'dcos.serverGroup.vaultSecrets.backend': 'Secret type from Vault\'s Secret Engines.',
+  'dcos.serverGroup.vaultSecrets.policy': 'Access policy for the resource.',
+  'dcos.serverGroup.vaultSecrets.setRole': 'Required by the PostgreSQL secret engine to revoke dynamic credentials correctly - the role that owns the database objects.'
 };
 
 export const DCOS_HELP = 'spinnaker.dcos.help.contents';
