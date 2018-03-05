@@ -52,9 +52,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       selectedStageType: null,
     };
 
-    accountService.listProviders($scope.application).then((providers) => {
-      $scope.options.stageTypes = pipelineConfig.getConfigurableStageTypes(providers);
-      $scope.showProviders = providers.length > 1;
+    accountService.applicationAccounts($scope.application).then(accounts => {
+      $scope.options.stageTypes = pipelineConfig.getConfigurableStageTypes(accounts);
+      $scope.showProviders = new Set(accounts.map(a => a.cloudProvider)).size > 1;
     });
 
     if ($scope.pipeline.strategy) {
@@ -71,6 +71,20 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       var requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
       return stage.available ? 'Available' :
         requisiteStageRefIds.includes(stage.refId) ? null : 'Downstream dependencies (unavailable)';
+    };
+
+    $scope.stageProducesArtifacts = function() {
+      if (!$scope.stage) {
+        return false;
+      }
+
+      const stageConfig = pipelineConfig.getStageConfig($scope.stage);
+
+      if (!stageConfig) {
+        return false;
+      } else {
+        return !!stageConfig.producesArtifacts;
+      }
     };
 
     $scope.updateAvailableDependencyStages = function() {

@@ -6,6 +6,7 @@ export interface IExecution extends IOrchestratedItem {
   appConfig?: any;
   application: string;
   buildInfo?: any;
+  buildTime?: number;
   canceledBy?: string;
   cancellationReason?: string;
   context?: { [key: string]: any };
@@ -25,6 +26,7 @@ export interface IExecution extends IOrchestratedItem {
   stringVal?: string;
   trigger: IExecutionTrigger;
   user: string;
+  fromTemplate?: boolean;
 }
 
 export interface IExecutionGroup {
@@ -33,5 +35,5 @@ export interface IExecutionGroup {
   heading: string;
   runningExecutions?: IExecution[];
   targetAccounts?: string[];
+  fromTemplate?: boolean;
 }
-

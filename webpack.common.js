@@ -5,6 +5,7 @@ const md5 = require('md5');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // invalidate webpack cache when webpack config is changed or cache-loader is updated,
 const CACHE_INVALIDATE = JSON.stringify({
@@ -144,7 +145,6 @@ function configure(IS_TEST) {
       stats: 'errors-only',
     },
     externals: {
-      'cheerio': 'window',
       'react/addons': 'react',
       'react/lib/ExecutionEnvironment': 'react',
       'react/lib/ReactContext': 'react',
@@ -161,6 +161,12 @@ function configure(IS_TEST) {
 
   config.plugins = [
     new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
+    new CopyWebpackPlugin([
+      {
+        from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
+        to: `./styleguide.html`,
+      }
+    ]),
   ];
 
   if (!IS_TEST) {

@@ -206,7 +206,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       };
 
       var submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, { interestingHealthProviderNames: ['Kubernetes'] } );
+        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, { interestingHealthProviderNames: ['Kubernetes'], namespace: instance.region || instance.namespace } );
       };
 
       confirmationModalService.confirm({
@@ -228,7 +228,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       };
 
       var submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, { interestingHealthProviderNames: ['Kubernetes'] } );
+        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, { interestingHealthProviderNames: ['Kubernetes'], namespace: instance.region || instance.namespace } );
       };
 
       confirmationModalService.confirm({

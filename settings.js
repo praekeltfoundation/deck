@@ -1,6 +1,5 @@
 'use strict';
 
-// Add any env variables used here to the webpack config variable: HAPPY_PACK_ENV_INVALIDATE
 var feedbackUrl = process.env.FEEDBACK_URL;
 var gateHost = process.env.API_HOST || 'http://localhost:8084';
 var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}');
@@ -13,6 +12,7 @@ var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : fals
 var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
 var canaryEnabled = process.env.CANARY_ENABLED === 'true';
 var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
+var dryRunEnabled = process.env.DRYRUN_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -128,27 +128,29 @@ window.spinnakerSettings = {
   authEnabled: authEnabled,
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket'],
+  pubsubProviders: ['google', 'kafka'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub'],
   searchVersion: 1,
   feature: {
+    artifacts: false,
     canary: canaryEnabled,
-    entityTags: entityTagsEnabled,
-    fiatEnabled: fiatEnabled,
-    pipelines: true,
-    notifications: false,
-    fastProperty: true,
-    vpcMigrator: true,
-    clusterDiff: false,
-    roscoMode: false,
-    netflixMode: netflixMode,
     chaosMonkey: chaosEnabled,
+    clusterDiff: false,
+    dryRunEnabled: dryRunEnabled,
+    entityTags: entityTagsEnabled,
+    fastProperty: true,
+    fiatEnabled: fiatEnabled,
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
     infrastructureStages: infrastructureEnabled,
     jobs: false,
+    netflixMode: netflixMode,
+    notifications: false,
+    pipelineTemplates: false,
+    pipelines: true,
+    roscoMode: false,
     snapshots: false,
     travis: false,
-    pipelineTemplates: false,
-    artifacts: false,
     versionedProviders: true,
+    vpcMigrator: true,
   },
 };

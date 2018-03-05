@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import { AUTHENTICATION_SERVICE } from 'core/authentication/authentication.service';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { SETTINGS } from 'core/config/settings';
 
 import './manualPipelineExecution.less';
 
@@ -15,10 +16,12 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
   AUTHENTICATION_SERVICE
 ])
   .controller('ManualPipelineExecutionCtrl', function ($uibModalInstance, pipeline, application, pipelineConfig,
-                                                       notificationService, authenticationService) {
+                                                       trigger, notificationService, authenticationService) {
 
     let applicationNotifications = [];
     let pipelineNotifications = [];
+
+    this.hiddenParameters = new Set();
 
     this.notificationTooltip = require('./notifications.tooltip.html');
 
@@ -48,6 +51,7 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
     this.command = {
       pipeline: pipeline,
       trigger: null,
+      dryRun: false,
       notificationEnabled: false,
       notification: {
         type: 'email',
@@ -59,6 +63,8 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
       }
     };
 
+    this.dryRunEnabled = SETTINGS.feature.dryRunEnabled;
+
     let addTriggers = () => {
       let pipeline = this.command.pipeline;
       if (!pipeline || !pipeline.triggers || !pipeline.triggers.length) {
@@ -67,16 +73,25 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
       }
 
       this.triggers = pipeline.triggers
-        .filter((trigger) => pipelineConfig.hasManualExecutionHandlerForTriggerType(trigger.type))
-        .map((trigger) => {
-          let copy = _.clone(trigger);
+        .filter((t) => pipelineConfig.hasManualExecutionHandlerForTriggerType(t.type))
+        .map((t) => {
+          let copy = _.clone(t);
           copy.description = '...'; // placeholder
-          pipelineConfig.getManualExecutionHandlerForTriggerType(trigger.type)
-            .formatLabel(trigger).then((label) => copy.description = label);
+          pipelineConfig.getManualExecutionHandlerForTriggerType(t.type)
+            .formatLabel(t).then((label) => copy.description = label);
           return copy;
         });
 
-      this.command.trigger = _.head(this.triggers);
+      if (trigger && trigger.type === 'manual' && this.triggers.length) {
+        trigger.type = this.triggers[0].type;
+      }
+
+      const suppliedTriggerCanBeInvoked = trigger && pipelineConfig.hasManualExecutionHandlerForTriggerType(trigger.type);
+      if (suppliedTriggerCanBeInvoked) {
+        pipelineConfig.getManualExecutionHandlerForTriggerType(trigger.type)
+          .formatLabel(trigger).then((label) => trigger.description = label);
+      }
+      this.command.trigger = suppliedTriggerCanBeInvoked ? trigger : _.head(this.triggers);
     };
 
 
@@ -87,19 +102,19 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
     this.triggerUpdated = (trigger) => {
       let command = this.command;
 
-      if( trigger !== undefined ) {
+      if (trigger !== undefined) {
         command.trigger = trigger;
       }
 
-      if (command.trigger) {
+      if (command.trigger && pipelineConfig.hasManualExecutionHandlerForTriggerType(command.trigger.type)) {
         this.triggerTemplate = pipelineConfig.getManualExecutionHandlerForTriggerType(command.trigger.type)
           .selectorTemplate;
       }
     };
 
     this.pipelineSelected = () => {
-      let pipeline = this.command.pipeline,
-          executions = application.executions.data || [];
+      const pipeline = this.command.pipeline,
+            executions = application.executions.data || [];
 
       pipelineNotifications = pipeline.notifications || [];
       synchronizeNotifications();
@@ -115,11 +130,55 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         this.parameters = {};
         this.hasRequiredParameters = pipeline.parameterConfig.some(p => p.required);
-        pipeline.parameterConfig.forEach((parameter) => {
-          this.parameters[parameter.name] = parameter.default;
-        });
+        pipeline.parameterConfig.forEach((p) => this.addParameter(p));
+        this.updateParameters();
       }
 
+    };
+
+    this.addParameter = (parameterConfig) => {
+      const { name } = parameterConfig;
+      const parameters = trigger ? trigger.parameters : {};
+      if (this.parameters[name] === undefined) {
+        this.parameters[name] = parameters[name] !== undefined ? parameters[name] : parameterConfig.default;
+      }
+    };
+
+    this.updateParameters = () => {
+      this.command.pipeline.parameterConfig.forEach(p => {
+        if (p.conditional) {
+          const include = this.shouldInclude(p);
+          if (!include) {
+            delete this.parameters[p.name];
+            this.hiddenParameters.add(p.name);
+          } else {
+            this.hiddenParameters.delete(p.name);
+            this.addParameter(p);
+          }
+        }
+      });
+    };
+
+    this.shouldInclude = (p) => {
+      if (p.conditional) {
+        const comparingTo = this.parameters[p.conditional.parameter];
+        const value = p.conditional.comparatorValue;
+        switch (p.conditional.comparator) {
+          case '>':
+            return parseFloat(comparingTo) > parseFloat(value);
+          case '>=':
+            return parseFloat(comparingTo) >= parseFloat(value);
+          case '<':
+            return parseFloat(comparingTo) < parseFloat(value);
+          case '<=':
+            return parseFloat(comparingTo) <= parseFloat(value);
+          case '!=':
+            return comparingTo !== value;
+          case '=':
+            return comparingTo === value;
+        }
+      }
+      return true;
     };
 
     this.execute = () => {
@@ -136,6 +195,7 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
 
       command.pipelineName = pipeline.name;
       selectedTrigger.type = 'manual';
+      selectedTrigger.dryRun = this.command.dryRun;
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;

@@ -2,16 +2,16 @@ import * as React from 'react';
 import { get } from 'lodash';
 
 import { IRecentHistoryEntry } from 'core/history';
-import { ISearchResultType } from 'core/search';
+import { SearchResultType } from 'core/search';
 
 import { SearchResultPod } from './SearchResultPod';
 import { ProjectSummaryPod } from './ProjectSummaryPod';
 
-export type ISearchResult = IRecentHistoryEntry & { displayName: string };
+export type ISearchResult = IRecentHistoryEntry & { displayName: string; account?: string };
 
 export interface ISearchResultPodData {
   category: string;
-  config: ISearchResultType;
+  config: SearchResultType;
   results: ISearchResult[];
 }
 
@@ -19,11 +19,17 @@ export interface ISearchResultPodsProps {
   results: ISearchResultPodData[];
   onRemoveProject?: (projectId: string) => void;
   onRemoveItem?: (categoryName: string, itemId: string) => void;
+  onResultClick: (categoryName: string) => void;
 }
 
 export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
   public render() {
     const { results } = this.props;
+
+    if (!results.length) {
+      return null;
+    }
+
     const projects: ISearchResultPodData = results.find(x => x.category === 'projects');
     const otherCategories: ISearchResultPodData[] = results.filter(x => x.category !== 'projects')
       .sort((a, b) => a.category.localeCompare(b.category));
@@ -45,6 +51,7 @@ export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
                         projectName={get(project, 'params.project')}
                         applications={get(project, 'extraData.config.applications', [])}
                         onRemoveProject={this.props.onRemoveProject}
+                        onResultClick={this.props.onResultClick}
                       />
                     ))}
                   </div>
@@ -59,6 +66,7 @@ export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
                     key={category.category}
                     podData={category}
                     onRemoveItem={this.props.onRemoveItem}
+                    onResultClick={() => this.props.onResultClick(category.category)}
                   />
                 ))}
               </div>

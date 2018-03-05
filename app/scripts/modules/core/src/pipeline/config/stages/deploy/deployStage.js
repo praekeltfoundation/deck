@@ -96,7 +96,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     };
 
     this.addCluster = function() {
-      providerSelectionService.selectProvider($scope.application, 'serverGroup').then(function(selectedProvider) {
+      providerSelectionService.selectProvider($scope.application, 'serverGroup', providerFilterFn).then(function(selectedProvider) {
         let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
         $uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
@@ -182,6 +182,13 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
 
     if ($scope.pipeline.strategy) {
       $scope.stage.trafficOptions = $scope.stage.trafficOptions || $scope.trafficOptions[0].val;
+    }
+
+    function providerFilterFn(application, account, provider) {
+      return (
+        !provider.unsupportedStageTypes
+        || provider.unsupportedStageTypes.indexOf('deploy') === -1
+      );
     }
 
   });

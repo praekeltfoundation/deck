@@ -28,7 +28,7 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-import { IAmazonLoadBalancer, IKeyPair } from 'amazon/domain';
+import { IAmazonLoadBalancer, IKeyPair, IAmazonApplicationLoadBalancer } from 'amazon/domain';
 import { KEY_PAIRS_READ_SERVICE, KeyPairsReader } from 'amazon/keyPairs/keyPairs.read.service';
 
 export type IBlockDeviceMappingSource = 'source' | 'ami' | 'default';
@@ -168,9 +168,9 @@ export class AwsServerGroupConfigurationService {
       healthCheckTypes: this.$q.when(clone(this.healthCheckTypes)),
       terminationPolicies: this.$q.when(clone(this.terminationPolicies)),
     }).then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
-      let loadBalancerReloader = this.$q.when(null);
-      let securityGroupReloader = this.$q.when(null);
-      let instanceTypeReloader = this.$q.when(null);
+      let loadBalancerReloader = this.$q.when();
+      let securityGroupReloader = this.$q.when();
+      let instanceTypeReloader = this.$q.when();
       backingData.accounts = keys(backingData.credentialsKeyedByAccount);
       backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
       backingData.scalingProcesses = this.autoScalingProcessService.listProcesses();
@@ -457,9 +457,9 @@ export class AwsServerGroupConfigurationService {
   }
 
   public getTargetGroupNames(command: IAmazonServerGroupCommand): string[] {
-    const loadBalancersV2 = this.getLoadBalancerMap(command).filter((lb) => lb.loadBalancerType !== 'classic') as any[];
-    const allTargetGroups = flatten(loadBalancersV2.map<string[]>((lb) => lb.targetGroups));
-    return allTargetGroups.sort();
+    const loadBalancersV2 = this.getLoadBalancerMap(command).filter((lb) => lb.loadBalancerType !== 'classic') as IAmazonApplicationLoadBalancer[];
+    const instanceTargetGroups = flatten(loadBalancersV2.map<any>((lb) => lb.targetGroups.filter((tg) => tg.targetType === 'instance')));
+    return instanceTargetGroups.map((tg) => tg.name).sort();
   }
 
   public configureLoadBalancerOptions(command: IAmazonServerGroupCommand): IServerGroupCommandResult {

@@ -12,6 +12,7 @@ import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
 import { DebugWindow } from 'core/utils/consoleDebug';
 import { IPipeline } from 'core/domain/IPipeline';
+import { ISortFilter } from 'core/filterModel';
 
 export class ExecutionService {
   public get activeStatuses(): string[] { return ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED']; }
@@ -55,9 +56,10 @@ export class ExecutionService {
    * @return {<IExecution[]>}
    */
     public getExecutions(applicationName: string, application: Application = null): IPromise<IExecution[]> {
-      const pipelines = Object.keys(this.executionFilterModel.asFilterModel.sortFilter.pipeline);
-      const statuses = Object.keys(pickBy(this.executionFilterModel.asFilterModel.sortFilter.status || {}, identity));
-      const limit = this.executionFilterModel.asFilterModel.sortFilter.count;
+      const sortFilter: ISortFilter = this.executionFilterModel.asFilterModel.sortFilter;
+      const pipelines = Object.keys(sortFilter.pipeline);
+      const statuses = Object.keys(pickBy(sortFilter.status || {}, identity));
+      const limit = sortFilter.count;
       if (application && pipelines.length) {
         return this.getConfigIdsFromFilterModel(application).then(pipelineConfigIds => {
           return this.getFilteredExecutions(application.name, statuses, limit, pipelineConfigIds);
@@ -182,18 +184,13 @@ export class ExecutionService {
     }
 
     public waitUntilNewTriggeredPipelineAppears(application: Application, triggeredPipelineId: string): IPromise<any> {
-      return this.getRunningExecutions(application.name).then((executions: IExecution[]) => {
-        const match = executions.find((execution) => execution.id === triggeredPipelineId);
-        const deferred = this.$q.defer();
-        if (match) {
-          application.executions.refresh().then(deferred.resolve);
-          return deferred.promise;
-        } else {
-          return this.$timeout(() => {
-            return this.waitUntilNewTriggeredPipelineAppears(application, triggeredPipelineId);
-          }, 1000);
-        }
-      });
+      return this.getExecution(triggeredPipelineId).then(() => {
+        return application.executions.refresh();
+      }).catch(() => {
+        return this.$timeout(() => {
+          return this.waitUntilNewTriggeredPipelineAppears(application, triggeredPipelineId);
+        }, 1000);
+      })
     }
 
     private waitUntilPipelineIsCancelled(application: Application, executionId: string): IPromise<any> {
@@ -454,11 +451,24 @@ export class ExecutionService {
         });
     }
 
-    public getExecutionsForConfigIds(application: Application, pipelineConfigIds: string, limit: number, statuses: string): IPromise<IExecution[]> {
-      return this.API.all('executions').getList({ limit, pipelineConfigIds, statuses })
+  /**
+   * Returns a list of recent executions for the supplied set of IDs, optionally filtered by status
+   * @param {string[]} pipelineConfigIds the pipeline config IDs
+   * @param {{limit?: number; statuses?: string; transform?: boolean; application?: Application}} options:
+   *  transform: if true - and the application option is set, the execution transformer will run on each result (default: false)
+   *  application: if transform is true, the application to use when transforming the executions (default: null)
+   *  limit: the number of executions per config ID to retrieve (default: whatever Gate sets)
+   *  statuses: an optional set of execution statuses (default: all)
+   * @return {angular.IPromise<IExecution[]>}
+   */
+    public getExecutionsForConfigIds(pipelineConfigIds: string[], options: { limit?: number, statuses?: string, transform?: boolean, application?: Application } = {}): IPromise<IExecution[]> {
+      const { limit, statuses, transform, application } = options;
+      return this.API.all('executions').getList({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
         .then((data: IExecution[]) => {
           if (data) {
-            data.forEach((execution: IExecution) => this.transformExecution(application, execution));
+            if (transform && application) {
+              data.forEach((execution: IExecution) => this.transformExecution(application, execution));
+            }
             return data.sort((a, b) => b.startTime - (a.startTime || Date.now()));
           }
           return [];

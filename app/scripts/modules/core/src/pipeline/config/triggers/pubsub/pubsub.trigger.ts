@@ -1,5 +1,7 @@
 import { IController, module } from 'angular';
 
+import { SETTINGS } from 'core/config/settings';
+
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import {
   PUBSUB_SUBSCRIPTION_SERVICE,
@@ -8,21 +10,27 @@ import {
 import {
   IPubsubTrigger,
 } from 'core/domain';
+import { ServiceAccountService } from 'core';
 
 class PubsubTriggerController implements IController {
-  public pubsubSystems = ['kafka', 'google'];
+  public pubsubSystems = SETTINGS.pubsubProviders || ['google', 'kafka'];
   public pubsubSubscriptions: string[];
   public subscriptionsLoaded = false;
+  public serviceAccounts: string[];
 
   constructor(public trigger: IPubsubTrigger,
-              pubsubSubscriptionService: PubsubSubscriptionService) {
+              private pubsubSubscriptionService: PubsubSubscriptionService,
+              private serviceAccountService: ServiceAccountService) {
     'ngInject';
 
     this.subscriptionsLoaded = false;
-    pubsubSubscriptionService.getPubsubSubscriptions()
+    this.pubsubSubscriptionService.getPubsubSubscriptions()
       .then(subscriptions => this.pubsubSubscriptions = subscriptions)
       .catch(() => this.pubsubSubscriptions = [])
       .finally(() => this.subscriptionsLoaded = true);
+    this.serviceAccountService.getServiceAccounts().then(accounts => {
+      this.serviceAccounts = accounts || [];
+    });
   }
 }
 

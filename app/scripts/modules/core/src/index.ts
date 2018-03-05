@@ -1,3 +1,5 @@
+import './utils/failedToInstantiateModule';
+
 export * from './account';
 export * from './api';
 export * from './application';
@@ -21,6 +23,8 @@ export * from './entityTag';
 // is found by the TS compiler, but not at runtime)
 export * from './entityTag/notifications/EntityNotifications';
 export * from './artifact';
+
+export * from './diffs';
 
 export * from './event/EventBus';
 

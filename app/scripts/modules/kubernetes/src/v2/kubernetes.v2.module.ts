@@ -15,6 +15,7 @@ import { KUBERNETES_DEPLOY_MANIFEST_STAGE } from './pipelines/stages/deployManif
 import { KUBERNETES_DELETE_MANIFEST_STAGE } from './pipelines/stages/deleteManifest/deleteManifestStage';
 import { KUBERNETES_SCALE_MANIFEST_STAGE } from './pipelines/stages/scaleManifest/scaleManifestStage';
 import { KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE } from './pipelines/stages/undoRolloutManifest/undoRolloutManifestStage';
+import { KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE } from './pipelines/stages/findArtifactsFromResource/findArtifactsFromResourceStage';
 import { KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/details.controller';
 import { KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL } from './securityGroup/details/details.controller';
 import { KUBERNETES_V2_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroupTransformer.service';
@@ -30,8 +31,11 @@ import { KUBERNETES_MANIFEST_SERVICE } from './manifest/manifest.service';
 import { KUBERNETES_MANIFEST_CONDITION } from './manifest/status/condition.component';
 import { KUBERNETES_MANIFEST_ARTIFACT } from './manifest/artifact/artifact.component';
 import { KUBERNETES_MANIFEST_SELECTOR } from './manifest/selector/selector.component';
+import { KUBERNETES_MANIFEST_LABELS } from './manifest/manifestLabels.component';
+import { KUBERNETES_MANIFEST_ANNOTATIONS } from './manifest/manifestAnnotations.component';
 import { KUBERNETES_MULTI_MANIFEST_SELECTOR } from './manifest/selector/multiSelector.component';
 import { KUBERNETES_SHOW_MANIFEST_YAML } from './manifest/showManifestYaml.component';
+import { KUBERNETES_SHOW_MANIFEST_DETAILS } from './manifest/showManifestDetails.component';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -71,9 +75,13 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_DELETE_MANIFEST_STAGE,
   KUBERNETES_SCALE_MANIFEST_STAGE,
   KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE,
+  KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE,
   KUBERNETES_MANIFEST_SELECTOR,
   KUBERNETES_MULTI_MANIFEST_SELECTOR,
+  KUBERNETES_MANIFEST_LABELS,
+  KUBERNETES_MANIFEST_ANNOTATIONS,
   KUBERNETES_SHOW_MANIFEST_YAML,
+  KUBERNETES_SHOW_MANIFEST_DETAILS,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
       name: 'Kubernetes',
@@ -109,6 +117,21 @@ module(KUBERNETES_V2_MODULE, [
       instance: {
         detailsController: 'kubernetesV2InstanceDetailsCtrl',
         detailsTemplateUrl: require('./instance/details/details.html'),
-      }
+      },
+      unsupportedStageTypes: [
+        'deploy',
+        'destroyServerGroup',
+        'disableCluster',
+        'disableServerGroup',
+        'enableServerGroup',
+        'findImage',
+        'resizeServerGroup',
+        'rollbackCluster',
+        'runJob',
+        'scaleDown',
+        'scaleDownCluster',
+        'script',
+        'shrinkCluster',
+      ],
     });
   });

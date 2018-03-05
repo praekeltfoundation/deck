@@ -8,6 +8,7 @@ import { Placement, Tooltip } from 'core/presentation';
 import './healthCounts.less';
 
 export interface IHealthCountsProps {
+  className?: string;
   container: IInstanceCounts;
   additionalLegendText?: string;
   legendPlacement?: Placement;
@@ -127,9 +128,11 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
       counts.push(<span key="failed"> {container.failed} <span className="glyphicon glyphicon-Failed-triangle disabled small"/></span>);
     }
 
+    const className = this.props.className || '';
+
     if (percentLabel !== 'n/a') {
       return (
-        <div className="health-counts">
+        <div className={`health-counts ${className}`}>
           <Tooltip template={legend} placement={this.props.legendPlacement}>
             <span className="counter instance-health-counts">
               {counts}
@@ -140,7 +143,7 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
       );
     } else if (container.outOfService) {
       return (
-        <div className="health-counts">
+        <div className={`health-counts ${className}`}>
           <Tooltip template={legend}>
             <span className="counter instance-health-counts">
               <span>

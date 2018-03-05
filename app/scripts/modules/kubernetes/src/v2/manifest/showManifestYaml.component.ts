@@ -1,8 +1,7 @@
 import { copy, IComponentOptions, IController, IRootScopeService, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
+import { trim } from 'lodash';
 import { dump } from 'js-yaml';
-
-import { ServerGroupTemplates } from '@spinnaker/core';
 
 class KubernetesShowManifestYaml implements IController {
   public manifest: any;
@@ -19,10 +18,10 @@ class KubernetesShowManifestYaml implements IController {
 
   public openYaml() {
     const scope = this.$rootScope.$new();
-    scope.userDataModalTitle = this.title;
-    scope.userData = this.text;
+    scope.manifestTitle = this.title;
+    scope.manifestData = this.text;
     this.$uibModal.open({
-      templateUrl: ServerGroupTemplates.userData,
+      templateUrl: require('./showManifestYaml.html'),
       scope: scope
     });
   }
@@ -32,9 +31,9 @@ class KubernetesShowManifestYamlComponent implements IComponentOptions {
   public bindings: any = { manifest: '<', linkName: '<' };
   public controller: any = KubernetesShowManifestYaml;
   public controllerAs = 'ctrl';
-  public template = `
+  public template = trim(`
     <a href ng-click='ctrl.openYaml()'>{{ctrl.linkName}}</a>
-  `;
+  `);
 }
 
 export const KUBERNETES_SHOW_MANIFEST_YAML = 'spinnaker.kubernetes.v2.manifest.showYaml';

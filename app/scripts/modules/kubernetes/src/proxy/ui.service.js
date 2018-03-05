@@ -19,10 +19,14 @@ module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [])
 
     function buildLink(accountName, kind, namespace, serverGroupName) {
       let apiPrefix = KubernetesProviderSettings.defaults.apiPrefix;
-      if ((apiPrefix == null) || (apiPrefix === "")) {
+      let account = KubernetesProviderSettings[accountName];
+      if (account && account.apiPrefix) {
+        apiPrefix = account.apiPrefix;
+      }
+      if ((apiPrefix == null) || (apiPrefix === '')) {
         apiPrefix = 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#';
       }
-  
+
       let host = getHost(accountName);
       if (!host.startsWith('http://') && !host.startsWith('https://')) {
         host = 'http://' + host;

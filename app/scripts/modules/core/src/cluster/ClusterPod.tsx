@@ -9,13 +9,14 @@ import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifica
 import { IServerGroup } from 'core/domain';
 import { Tooltip } from 'core/presentation';
 import { IClusterSubgroup, IServerGroupSubgroup } from './filter/clusterFilter.service';
+import { ISortFilter } from 'core/filterModel';
 import { ClusterPodTitleWrapper } from 'core/cluster/ClusterPodTitleWrapper';
 
 export interface IClusterPodProps {
   grouping: IClusterSubgroup;
   application: Application;
   parentHeading: string;
-  sortFilter: any;
+  sortFilter: ISortFilter;
 }
 
 export interface IClusterPodState {
@@ -83,9 +84,8 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
 
     return (
       <div className="pod-subgroup" key={subgroup.key}>
-        <h6 className="sticky-header-2 subgroup-title">
-          {subgroup.heading}
-
+        <h6 className="sticky-header-2 subgroup-title horizontal middle">
+          <div>{subgroup.heading}</div>
           <EntityNotifications
             entity={subgroup}
             application={application}
@@ -93,7 +93,7 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
             hOffsetPercent="20%"
             entityType="cluster"
             pageLocation="pod"
-            onUpdate={application.serverGroups.refresh}
+            onUpdate={() => application.serverGroups.refresh()}
           />
         </h6>
 

@@ -3,6 +3,22 @@
 
 @fixed-header-z-index: 1030;
 
+/* Resets for React select */
+.Select--multi .Select-multi-value-wrapper,
+.Select-control,
+.Select-input {
+  height: 30px;
+}
+
+.Select-input {
+  font-size: 12px;
+}
+
+.Select-placeholder {
+  line-height: 30px;
+  height: inherit;
+}
+
 /* Space out content a bit */
 body {
   font-family: 'Source Sans Pro', sans-serif;
@@ -101,8 +117,7 @@ html {
   }
   .filters-content, .nav-content, .details-panel, .main-content {
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: visible;
 
     display: flex;
     flex-direction: column;
@@ -117,6 +132,7 @@ html {
     }
   }
   .filters-content {
+    overflow-x: hidden;
     @media (min-width: 708px) and (max-width: 992px) {
       font-size: 90%;
       h3 {
@@ -256,6 +272,9 @@ html {
     }
     @media(min-width: 1400px) {
       width: 530px;
+    }
+    react-ui-view-adapter {
+      width: 100%;
     }
   }
   .nav-content {
@@ -737,7 +756,7 @@ tfoot .add-new {
   }
 }
 
-input:invalid {
+input:invalid, select:invalid {
   border-color: var(--color-danger);
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
@@ -1182,10 +1201,6 @@ select.input-sm {
 
 .Select.is-open { z-index: 10000; }
 
-.sortable-helper {
-  z-index: 10000;
-}
-
 html {
   overflow: hidden;
 }
@@ -1204,8 +1219,6 @@ body, html {
       padding: 0 10px;
     }
   }
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
 

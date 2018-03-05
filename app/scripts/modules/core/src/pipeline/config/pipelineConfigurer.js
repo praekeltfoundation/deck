@@ -356,7 +356,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     this.savePipeline = () => {
       this.setViewState({ saving: true });
       pipelineConfigService.savePipeline($scope.pipeline)
-        .then(() => $scope.application.pipelineConfigs.refresh())
+        .then(() => $scope.application.pipelineConfigs.refresh(true))
         .then(
           () => {
             setOriginal($scope.pipeline);
@@ -378,7 +378,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.getPipelineExecutions = () => {
-      executionService.getExecutionsForConfigIds($scope.pipeline.application, [$scope.pipeline.id], 5)
+      executionService.getExecutionsForConfigIds($scope.pipeline.id, { limit: 5, transform: true, application: $scope.pipeline.application})
         .then(executions => {
           executions.forEach(execution => executionsTransformer.addBuildInfo(execution));
           $scope.pipelineExecutions = executions;

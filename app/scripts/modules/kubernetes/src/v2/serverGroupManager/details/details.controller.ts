@@ -63,7 +63,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   }
 
   public canUndoRolloutServerGroupManager(): boolean {
-    return this.serverGroupManager.serverGroups && this.serverGroupManager.serverGroups.length > 0;
+    return this.serverGroupManager && this.serverGroupManager.serverGroups && this.serverGroupManager.serverGroups.length > 0;
   }
 
   public undoRolloutServerGroupManager(): void {
@@ -130,7 +130,8 @@ class KubernetesServerGroupManagerDetailsController implements IController {
           namespace: this.serverGroupManager.namespace,
           account: this.serverGroupManager.account
         },
-        application: this.app
+        application: this.app,
+        manifestController: (): string => null,
       }
     });
   }

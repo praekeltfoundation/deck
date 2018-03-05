@@ -19,6 +19,7 @@ export interface IPipeline {
   parameterConfig: IParameter[];
   disabled?: boolean;
   expectedArtifacts?: IExpectedArtifact[];
+  type?: string;
 }
 
 export interface IParameter {
@@ -27,6 +28,13 @@ export interface IParameter {
   'default': string;
   hasOptions: boolean;
   options: IParameterOption[];
+  condition?: IParameterCondition;
+}
+
+export interface IParameterCondition {
+  parameter: string;
+  comparator: '>' | '<' | '>=' | '<=' | '=' | '!=';
+  comparatorValue: string | number;
 }
 
 export interface IParameterOption {

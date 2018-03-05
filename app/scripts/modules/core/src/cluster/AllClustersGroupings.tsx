@@ -2,7 +2,7 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 import { IClusterSubgroup } from 'core/cluster/filter/clusterFilter.service';
 import { BindAll } from 'lodash-decorators';
 import * as React from 'react';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
 
@@ -11,6 +11,7 @@ import { Application } from 'core/application';
 import { ClusterPod } from 'core/cluster/ClusterPod';
 import { IClusterGroup } from './filter/clusterFilter.service';
 import { Spinner } from 'core/widgets/spinners/Spinner'
+import { ISortFilter } from 'core/filterModel';
 
 export interface IAllClustersGroupingsProps {
   app: Application;
@@ -19,7 +20,8 @@ export interface IAllClustersGroupingsProps {
 
 export interface IAllClustersGroupingsState {
   groups: IClusterSubgroup[];
-  sortFilter: any;
+  sortFilter: ISortFilter;
+  scrollToRow?: number;
 }
 
 @UIRouterContext
@@ -61,6 +63,17 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     // TODO: Remove $rootScope. Keeping it here so we can use $watch for now.
     //       Eventually, there should be events fired when filters change.
     this.unwatchSortFilter = ReactInjector.$rootScope.$watch(getSortFilter, onFilterChanged, true);
+    const { $stateParams } = ReactInjector;
+    // Automatically scroll server group into view if deep linked
+    if ($stateParams.serverGroup) {
+      this.clusterFilterService.groupsUpdatedStream.take(1).subscribe(() => {
+        const scrollToRow = this.state.groups
+          .findIndex(group => group.subgroups
+            .some(subgroup => subgroup.serverGroups
+              .some(sg => sg.account === $stateParams.accountId && sg.name === $stateParams.serverGroup && sg.region === $stateParams.region)));
+        this.setState({ scrollToRow });
+      });
+    }
   }
 
   public componentWillReceiveProps() {
@@ -116,10 +129,12 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
             height={height}
             width={width}
             rowCount={groups.length}
-            // deferredMeasurementCache={this.cellCache}
+            deferredMeasurementCache={this.cellCache}
             rowHeight={this.cellCache.rowHeight}
             rowRenderer={this.renderRow}
             noRowsRenderer={this.noRowsRender}
+            scrollToAlignment="start"
+            scrollToIndex={this.state.scrollToRow}
             overscanRowCount={3}
             containerStyle={{ overflow: 'visible' }}
           />}

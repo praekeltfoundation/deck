@@ -14,13 +14,17 @@ module.exports = angular.module('spinnaker.deck.gce.backendService.reader.servic
       if (kind) {
         return listBackendServices()
           .then(([services]) => {
-            return services.results.filter((service) => service.kind === kind);
+            if (services) {
+              let results = services.results || [];
+              return results.filter((service) => service.kind === kind);
+            }
+            return [];
           });
       } else {
         return API
           .all('search')
           .useCache(infrastructureCaches.get('backendServices'))
-          .getList({q:'', type: 'backendServices'});
+          .getList({q:'', type: 'backendServices', allowShortQuery: 'true'});
       }
     }
 

@@ -1,6 +1,7 @@
 import { IDeferred, ILogService, IPromise, IQService, IScope } from 'angular';
 import { get } from 'lodash';
 import { UIRouter } from '@uirouter/core';
+import { BindAll } from 'lodash-decorators';
 import { Subject, Subscription } from 'rxjs';
 
 import { Application } from '../application.model';
@@ -108,6 +109,11 @@ export interface IDataSourceConfig {
   optional?: boolean;
 
   /**
+   * (Optional) whether this data source is visible in the UI (used only for early access/beta testing)
+   */
+  hidden?: boolean;
+
+  /**
    * (Optional) Determines whether the data source is listed directly to the left of the application name
    */
   primary?: boolean;
@@ -184,6 +190,7 @@ export class DataSourceConfig implements IDataSourceConfig {
   }
 }
 
+@BindAll()
 export class ApplicationDataSource implements IDataSourceConfig {
   /** Index Signature */
   [k: string]: any;
@@ -208,6 +215,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   public requireConfiguredApp = false;
   public sref: string;
   public visible = true;
+  public hidden = false;
 
   /**
    * State flag that indicates whether the data source has been loaded. If the data source does not have a declared

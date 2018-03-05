@@ -2,18 +2,17 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 import { pickBy, isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
-import { MenuItem, DropdownButton, ButtonToolbar } from 'react-bootstrap';
 
 import { ITag } from 'core/widgets';
 import { ReactInjector } from 'core/reactShims';
-import { Application } from 'core/application';
-import { IProject } from 'core/domain';
 import { IQueryParams } from 'core/navigation';
+import { InsightMenu } from 'core/insight/InsightMenu';
 
 import { Search } from '../widgets';
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { SearchResults, SearchStatus, searchResultTypeRegistry } from '../searchResult';
+import { SearchResultPods } from '../infrastructure/SearchResultPods';
 
 // These state parameters are passed through to Gate's search API
 const API_PARAMS = ['key', 'name', 'account', 'region', 'stack'];
@@ -22,18 +21,15 @@ export interface ISearchV2State {
   selectedTab: string;
   params: { [key: string]: any };
   resultSets: ISearchResultSet[];
+  isSearching: boolean;
   refreshingCache: boolean;
 }
 
 @BindAll()
 export class SearchV2 extends React.Component<{}, ISearchV2State> {
-  private $rootScope = ReactInjector.$rootScope;
   private $state = ReactInjector.$state;
-  private $uibModal = ReactInjector.modalService;
   private $uiRouter = ReactInjector.$uiRouter;
   private infrastructureSearchServiceV2 = ReactInjector.infrastructureSearchServiceV2;
-  private cacheInitializer = ReactInjector.cacheInitializer;
-  private overrideRegistry = ReactInjector.overrideRegistry;
 
   private searchResultTypes = searchResultTypeRegistry.getAll();
 
@@ -46,9 +42,10 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     super(props);
 
     this.state = {
-      selectedTab: this.$state.params.tab || 'applications',
+      selectedTab: this.$state.params.tab,
       params: {},
       resultSets: this.INITIAL_RESULTS,
+      isSearching: false,
       refreshingCache: false,
     };
 
@@ -73,7 +70,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       .map(stateParams => this.getApiFilterParams(stateParams))
       .do((params: IQueryParams) => this.setState({ params }))
       .distinctUntilChanged((a, b) => API_PARAMS.every(key => a[key] === b[key]))
-      .do(() => this.setState({ resultSets: this.INITIAL_RESULTS }))
+      .do(() => this.setState({ resultSets: this.INITIAL_RESULTS, isSearching: true }))
       // Got new params... fire off new queries for each backend
       // Use switchMap so new queries cancel any pending previous queries
       .switchMap((params: IQueryParams): Observable<ISearchResultSet[]> => {
@@ -92,7 +89,12 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
           }, this.INITIAL_RESULTS)
       })
       .takeUntil(this.destroy$)
-      .subscribe(resultSets => this.setState({ resultSets }));
+      .subscribe(resultSets => {
+        if (!this.state.selectedTab) {
+          this.selectTab(resultSets);
+        }
+        this.setState({ resultSets })
+      }, null, () => this.setState({ isSearching: false }));
 
     this.$uiRouter.globals.params$
       .map(params => params.tab)
@@ -101,52 +103,29 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       .subscribe(selectedTab => this.setState({ selectedTab }));
   }
 
+  /** Select the first tab with results */
+  private selectTab(resultSets: ISearchResultSet[]): void {
+    // Prioritize applications tab over all others
+    const order = (rs: ISearchResultSet) => rs.type.id === 'applications' ? -1 : rs.type.order;
+    const tabs = resultSets.slice().sort((a, b) => order(a) - order(b));
+
+    // Scan all tabs in order.  Find the first tab that has results.  Stop scanning when a tab with unfinished results is encountered.
+    const found = tabs.reduce((previous, tab) => {
+      const resultAlreadyFound = previous.tabId || previous.unfinished;
+      const unfinished = tab.status !== SearchStatus.FINISHED;
+      const tabId = tab.results.length ? tab.type.id : null;
+      return resultAlreadyFound ? previous : { ...previous, unfinished, tabId };
+    }, { tabId: null, unfinished: false });
+
+    if (found.tabId) {
+      this.$state.go('.', { tab: found.tabId });
+    }
+  }
+
   public componentWillUnmount() {
     this.destroy$.next();
   }
 
-  private createProject() {
-    this.$uibModal.open({
-      scope: this.$rootScope.$new(),
-      templateUrl: require('../../projects/configure/configureProject.modal.html'),
-      controller: 'ConfigureProjectModalCtrl',
-      controllerAs: 'ctrl',
-      size: 'lg',
-      resolve: {
-        projectConfig: () => {
-          return {};
-        },
-      }
-    }).result.then(this.routeToProject).catch(() => {});
-  };
-
-  private routeToProject(project: IProject) {
-    this.$state.go('home.project.dashboard', { project: project.name });
-  }
-
-  private createApplication() {
-    this.$uibModal.open({
-      scope: this.$rootScope.$new(),
-      templateUrl: this.overrideRegistry.getTemplate('createApplicationModal', require('../../application/modal/newapplication.html')),
-      controller: this.overrideRegistry.getController('CreateApplicationModalCtrl'),
-      controllerAs: 'newAppModal'
-    }).result.then(this.routeToApplication).catch(() => {});
-  };
-
-  private routeToApplication(app: Application) {
-    this.$state.go('home.applications.application.insight.clusters', { application: app.name });
-  }
-
-  private refreshAllCaches() {
-    if (this.state.refreshingCache) {
-      return;
-    }
-
-    this.setState({ refreshingCache: true });
-    this.cacheInitializer.refreshCaches().then(() => {
-      this.setState({ refreshingCache: false })
-    });
-  }
 
   public handleFilterChange(filters: ITag[]) {
     const blankApiParams = API_PARAMS.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
@@ -155,24 +134,9 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   }
 
   public render() {
-    const { params, resultSets, selectedTab } = this.state;
+    const { params, resultSets, selectedTab, isSearching } = this.state;
     const hasSearchQuery = Object.keys(params).length > 0;
 
-    const DropdownActions = () => {
-      const refreshText = this.state.refreshingCache ?
-          <span><span className="fa fa-refresh fa-spin"/> Refreshing...</span> :
-          <span>Refresh all caches</span>;
-
-      return (
-        <ButtonToolbar>
-          <DropdownButton pullRight={true} bsSize="large" title="Actions" id="dropdown-size-large">
-            <MenuItem href="javascript:void(0)" onClick={this.createApplication}>Create Application</MenuItem>
-            <MenuItem href="javascript:void(0)" onClick={this.createProject}>Create Project</MenuItem>
-            <MenuItem href="javascript:void(0)" onClick={this.refreshAllCaches}>{refreshText}</MenuItem>
-          </DropdownButton>
-        </ButtonToolbar>
-      )
-    };
 
     return (
       <div className="infrastructure">
@@ -184,21 +148,20 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
               </div>
             </h2>
             <div className="header-actions">
-              <DropdownActions/>
+              <InsightMenu />
             </div>
           </div>
         </div>
         <div className="container flex-fill" style={{ overflowY: 'auto' }}>
           {!hasSearchQuery && (
             <div>
-              <h3 style={{ textAlign: 'center' }}>Please enter a search query to get started</h3>
-              <RecentlyViewedItems/>
+              <RecentlyViewedItems Component={SearchResultPods}/>
             </div>
           )}
 
           {hasSearchQuery && (
             <div className="flex-fill">
-              <SearchResults selectedTab={selectedTab} resultSets={resultSets} />
+              <SearchResults selectedTab={selectedTab} resultSets={resultSets} isSearching={isSearching} />
             </div>
           )}
         </div>

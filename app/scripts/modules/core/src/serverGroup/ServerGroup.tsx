@@ -3,18 +3,20 @@ import * as ReactGA from 'react-ga';
 import { has, get } from 'lodash';
 import * as classNames from 'classnames';
 import { BindAll } from 'lodash-decorators';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
 import { CloudProviderLogo } from 'core/cloudProvider';
 import { IInstance, IServerGroup } from 'core/domain';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
+import { InstanceList } from 'core/instance/InstanceList';
+import { Instances } from 'core/instance/Instances';
 import { LoadBalancersTagWrapper } from 'core/loadBalancer';
 import { NamingService } from 'core/naming';
 import { NgReact, ReactInjector } from 'core/reactShims';
-import { Instances } from 'core/instance/Instances';
 import { ScrollToService } from 'core/utils';
+import { ISortFilter } from 'core/filterModel';
 import { ServerGroupManagerTag } from 'core/serverGroupManager/ServerGroupManagerTag';
 
 export interface JenkinsViewModel {
@@ -26,7 +28,7 @@ export interface IServerGroupProps {
   cluster: string;
   serverGroup: IServerGroup;
   application: Application;
-  sortFilter: any;
+  sortFilter: ISortFilter;
   hasLoadBalancers: boolean;
   hasDiscovery: boolean;
 }
@@ -170,7 +172,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   }
 
   public render() {
-    const { InstanceList, RunningTasksTag } = NgReact;
+    const { RunningTasksTag } = NgReact;
     const { filter, instances, images, jenkins, isSelected, multiselect, isMultiSelected, showAllInstances, listInstances } = this.state;
     const { serverGroup, application, sortFilter, hasDiscovery, hasLoadBalancers } = this.props;
     const { account, region, name, type } = serverGroup;
@@ -195,7 +197,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       'sticky-header-3': this.headerIsSticky(),
     });
 
-    const col1ClassName = `col-md-${images ? 9 : 8 } col-sm-6 section-title`;
+    const col1ClassName = `col-md-${images ? 9 : 8 } col-sm-6 section-title horizontal bottom`;
     const col2ClassName = `col-md-${images ? 3 : 4 } col-sm-6 text-right`;
 
     return (
@@ -211,7 +213,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
 
                   <span className="server-group-sequence"> {this.state.serverGroupSequence}</span>
                   {(hasJenkins || hasImages) && <span>: </span>}
-                  {hasJenkins && <a href={jenkins.href} target="_blank">Build: #{jenkins.number}</a>}
+                  {hasJenkins && <a className="build-link" href={jenkins.href} target="_blank">Build: #{jenkins.number}</a>}
                   {hasImages && <span>{images}</span>}
 
                   <EntityNotifications
@@ -221,7 +223,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
                     hOffsetPercent="20%"
                     entityType="serverGroup"
                     pageLocation="pod"
-                    onUpdate={application.serverGroups.refresh}
+                    onUpdate={() => application.serverGroups.refresh()}
                   />
                 </div>
 
