@@ -35,6 +35,13 @@ const helpContents: { [key: string]: string } = {
   'dcos.serverGroup.vaultSecrets.refreshInterval': 'Period to check if dynamic secret leases are still valid.',
   'dcos.serverGroup.vaultSecrets.leaseIncrement': 'Period by which to extend existing leases.',
   'dcos.serverGroup.vaultSecrets.renewalGrace': 'Time to expiry before Vaultkeeper renews the lease.',
+  'dcos.serverGroup.vaultSecrets.vaultConfiguration': 'Details about your Vault instance, mandatory if using Vault secrets.',
+  'dcos.serverGroup.vaultSecrets.vaultAddress': 'Address of your Vault host.',
+  'dcos.serverGroup.vaultSecrets.addVaultDockerHost': 'Add the Vault address to task containers\' /etc/hosts file.',
+  'dcos.serverGroup.vaultSecrets.gatekeeperAddress': 'Address of your Secure Introduction Agent (ie. vault-gatekeeper-mesos).',
+  'dcos.serverGroup.vaultSecrets.addGatekeeperDockerHost': 'Add the Gatekeeper address to task containers\' /etc/hosts file.',
+  'dcos.serverGroup.vaultSecrets.credentialPath': 'Where your task/application should look for its credentials.',
+  'dcos.serverGroup.vaultSecrets.setSecretsOutput': 'Select this if you want your task/application to use the Vaultkeeper output for credentials (recommended).',
   'dcos.serverGroup.vaultSecrets.backend': 'Secret type from Vault\'s Secret Engines.',
   'dcos.serverGroup.vaultSecrets.policy': 'Access policy for the resource.',
   'dcos.serverGroup.vaultSecrets.setRole': 'Required by the PostgreSQL secret engine to revoke dynamic credentials correctly - the role that owns the database objects.'

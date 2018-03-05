@@ -71,6 +71,42 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
       $scope.command.viewModel.secrets[index].policy = $scope.command.viewModel.secrets[index].policy;
     };
 
+    this.setSecretOutputPath = function() {
+      if ($scope.vault.setSecretOutputPath === true) {
+        $scope.vaultkeeper.outputPath = $scope.vault.credentialPath;
+      }
+    };
+
+    this.isDockerParametersValid = function(parameters) {
+      return !(typeof parameters === 'string' || parameters instanceof String);
+    };
+
+    this.addVaultDockerHost = function() {
+      if ($scope.vault.addVaultDockerHost === true) {
+      if (!this.isDockerParametersValid($scope.command.docker.parameters)) {
+        $scope.command.docker.parameters = [];
+      }
+
+      $scope.command.docker.parameters.push({
+        key: 'add-host',
+        value: $scope.vault.vaultAddress
+      });
+    }
+    };
+
+    this.addGatekeeperDockerHost = function() {
+      if ($scope.vault.addGatekeeperDockerHost === true) {
+      if (!this.isDockerParametersValid($scope.command.docker.parameters)) {
+        $scope.command.docker.parameters = [];
+      }
+
+      $scope.command.docker.parameters.push({
+        key: 'add-host',
+        value: $scope.vault.gatekeeperAddress
+      });
+    }
+    };
+
     this.synchronize = () => {
       var vaultkeeperConfig = {};
 
@@ -116,11 +152,18 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.vaultSecre
         item.checkUnique = allNames.filter((name) => item.name !== name);
         item.requiresSetRole = item.policy && (item.policy.toLowerCase().indexOf('postgres') >= 0);
       });
-      $scope.command.env['VAULT_SECRETS'] = JSON.stringify(sec);
-      $scope.command.env['VAULTKEEPER_CONFIG'] = JSON.stringify(vaultkeeperConfig);
-      console.info($scope.command.env['VAULT_SECRETS']);
-      console.info($scope.command.env['VAULTKEEPER_CONFIG']);
-      this.updateGatekeeperPolicies();
+      if ($scope.vault.vaultAddress && 
+          $scope.vault.gatekeeperAddress &&
+          $scope.vault.credentialPath) {
+            $scope.command.env['VAULT_SECRETS'] = JSON.stringify(sec);
+            $scope.command.env['VAULTKEEPER_CONFIG'] = JSON.stringify(vaultkeeperConfig);
+            console.info($scope.command.env['VAULT_SECRETS']);
+            console.info($scope.command.env['VAULTKEEPER_CONFIG']);
+            $scope.command.env['VAULT_ADDR'] = $scope.vault.vaultAddress;
+            $scope.command.env['GATEKEEPER_ADDR'] = $scope.vault.gatekeeperAddress;
+            $scope.command.env['CREDENTIAL_PATH'] = $scope.vault.credentialPath;
+            this.updateGatekeeperPolicies();
+      }
     };
     $scope.$watch(() => JSON.stringify($scope.command.viewModel.secrets), this.synchronize);
 
