@@ -18,9 +18,9 @@
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
-    <div class="header-text">
+    <div class="header-text horizontal middle">
       <cloud-provider-logo provider="ctrl.serverGroupManager.cloudProvider" height="'36px'" width="'36px'"></cloud-provider-logo>
-      <h3 select-on-dbl-click>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{ctrl.serverGroupManager.displayName}}
       </h3>
     </div>
@@ -95,6 +95,10 @@
       <ul ng-repeat="condition in ctrl.manifest.manifest.status.conditions">
         <kubernetes-manifest-condition condition="condition"></kubernetes-manifest-condition>
       </ul>
+    </collapsible-section>
+
+    <collapsible-section heading="Events" expanded="true">
+      <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
     </collapsible-section>
 
     <collapsible-section heading="Labels" expanded="true">

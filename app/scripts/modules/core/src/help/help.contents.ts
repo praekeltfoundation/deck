@@ -5,6 +5,7 @@ export interface IHelpContents {
 }
 
 export const HELP_CONTENTS = 'spinnaker.core.help.contents';
+// prettier-ignore
 module(HELP_CONTENTS, [])
   .constant('helpContents', {
     'core.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
@@ -73,7 +74,8 @@ module(HELP_CONTENTS, [])
         <p>Please include an email address or slack channel as appropriate.</p>`,
     'pipeline.config.optionalStage': `
         <p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>
-        <p>The expression <em>does not</em> need to be wrapped in \${ and }.</p>`,
+        <p>The expression <em>does not</em> need to be wrapped in \${ and }.</p>
+        <p>If this expression evaluates to false, the stages following this stage will still execute.</p>`,
     'pipeline.config.checkPreconditions.failPipeline': `
         <p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>
         <p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>`,
@@ -116,6 +118,10 @@ module(HELP_CONTENTS, [])
         <p>The GCS object name, in the form <code>gs://bucket/path/to/file.yml</code>.</p>`,
     'pipeline.config.expectedArtifact.defaultGcs.reference': `
         <p>The GCS object name, <i>optionally</i> appending the version. An example: <code>gs://bucket/file.yml#123948581</code></p>`,
+    'pipeline.config.expectedArtifact.s3.name': `
+        <p>The S3 object name, in the form <code>s3://bucket/path/to/file.yml</code>.</p>`,
+    'pipeline.config.expectedArtifact.defaultS3.reference': `
+        <p>The S3 object name, <i>optionally</i> appending the version. An example: <code>s3://bucket/file.yml#123948581</code></p>`,
     'pipeline.config.expectedArtifact.docker.name': `
         <p>The Docker image name you want to trigger on changes to. By default, this does <i>not</i> include the image tag or digest, only the registry and image repository.</p>`,
     'pipeline.config.expectedArtifact.defaultDocker.reference': `
@@ -197,6 +203,7 @@ module(HELP_CONTENTS, [])
         <p>The selected value can be used in a subsequent <strong>Check Preconditions</strong> stage to determine branching.</p>
         <p>For example, if the user selects "rollback" from this list of options, that branch can be activated by using the expression:
           <samp class="small">execution.stages[n].context.judgmentInput=="rollback"</samp></p>`,
+    'pipeline.config.bake.manifest.expectedArtifact': '<p>This is the template you want to render.</p>',
     'pipeline.config.haltPipelineOnFailure': 'Immediately halts execution of all running stages and fails the entire execution.',
     'pipeline.config.haltBranchOnFailure': 'Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run.',
     'pipeline.config.haltBranchOnFailureFailPipeline': 'Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run. The pipeline will be marked as failed once complete.',
@@ -216,7 +223,6 @@ module(HELP_CONTENTS, [])
     '<p><strong>Example: every Monday at 10 am</strong></p><samp>0 0 10 ? * 2</samp>' +
     '<p><strong>Note:</strong> values for "DayOfWeek" are 1-7, where Sunday is 1, Monday is 2, etc. You can also use MON,TUE,WED, etc.',
 
-    'cluster.description': '<p>A cluster is a collection of server groups with the same name (stack + detail) in the same account.</p>',
     'cluster.rollback.explicit': `
         <p>A server group running the previous build will be enabled and appropriately resized.</p>
         <p>The current server group will be disabled after the resize completes.</p>
@@ -257,14 +263,24 @@ module(HELP_CONTENTS, [])
         <p><b>Optional</b>: indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>
         <p>If you wish to destroy all server groups except the newly created one, select "Highlander" as the strategy.</p>
         <p><strong>Minimum value:</strong> 2</p>`,
+    'strategy.redblack.rollback': `
+      <p>Disable the new server group and ensure that the previous server group is restored to its original capacity.</p>
+      <p>The rollback <strong>will only be</strong> initiated if instances in the new server group fail to launch and become healthy.</p>
+      <p>Should an error occur disabling or destroying other server groups in the cluster, the new server group <strong>will not be</strong> rolled back.</p>
+    `,
     'strategy.rollingPush.relaunchAll': '<p>Incrementally terminates each instance in the server group, waiting for a new one to come up before terminating the next one.</p>',
     'strategy.rollingPush.totalRelaunches': '<p>Total number of instances to terminate and relaunch.</p>',
     'strategy.rollingPush.concurrentRelaunches': '<p>Number of instances to terminate and relaunch at a time.</p>',
+    'strategy.rollingPush.concurrentRelaunches.migration': `
+      <p>Number of instances to terminate and relaunch at a time.</p>
+      <p>Can be expressed as an explicit instance count or as a percentage of instances in server group being migrated.</p>
+    `,
     'strategy.rollingPush.order': `
         <p>Determines the order in which instances will be terminated.
         <ul><li><b>Oldest</b> will terminate the oldest instances first</li>
         <li><b>Newest</b> will terminate those most recently launched.</li></ul></p>`,
     'strategy.rollingRedBlack.targetPercentages': '<p>Rolling red black will slowly scale up the new server group. It will resize the new server group by each percentage defined.</p>',
+    'strategy.rollingRedBlack.rollback': '<p>Disable the new server group and ensure that the previous server group is restored to its original capacity.</p>',
     'loadBalancers.filter.serverGroups': `
         <p>Displays all server groups configured to use the load balancer.</p>
         <p>If the server group is configured to <em>not</em> add new instances to the load balancer, it will be grayed out.</p>`,

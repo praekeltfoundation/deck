@@ -45,9 +45,10 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
       contentString = this.helpContentsRegistry.getHelpField(id) || this.helpContents[id] || fallback;
     }
 
+    const config = { ADD_ATTR: ['target'] }; // allow: target="_blank"
     return {
-      contents: <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString) }}/>,
-    }
+      contents: <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString, config) }} />,
+    };
   }
 
   public componentWillReceiveProps(): void {
@@ -68,7 +69,7 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
     const { placement, label, expand } = this.props;
     const { contents } = this.state;
 
-    const icon = <i className="small glyphicon glyphicon-question-sign"/>;
+    const icon = <i className="small glyphicon glyphicon-question-sign" />;
 
     const popover = (
       <HoverablePopover placement={placement} template={contents} onShow={this.onShow} onHide={this.onHide}>
@@ -76,13 +77,8 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
       </HoverablePopover>
     );
 
-
     if (label) {
-      return (
-        <div className="text-only">
-          {!expand && contents && popover}
-        </div>
-      );
+      return <div className="text-only">{!expand && contents && popover}</div>;
     } else {
       const expanded = <div className="help-contents small"> {contents} </div>;
 

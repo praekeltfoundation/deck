@@ -5,19 +5,28 @@ const angular = require('angular');
 import { V2_MODAL_WIZARD_SERVICE, SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 import { SecretManagementService, SECRET_MANAGEMENT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
-  SERVER_GROUP_WRITER,
-  V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
-  SECRET_MANAGEMENT_SERVICE,
-  require('../configuration.service.js').name,
-])
-  .controller('dcosCloneServerGroupController', function($scope, $uibModalInstance, $q, $state,
-                                                               serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
-                                                               dcosServerGroupConfigurationService,
-                                                               secretManagementService,
-                                                               serverGroupCommand, application, title, $timeout,
-                                                               wizardSubFormValidation) {
+module.exports = angular
+  .module('spinnaker.dcos.serverGroup.configure.clone', [
+    SERVER_GROUP_WRITER,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+    require('../configuration.service.js').name,
+  ])
+  .controller('dcosCloneServerGroupController', function(
+    $scope,
+    $uibModalInstance,
+    $q,
+    $state,
+    serverGroupWriter,
+    v2modalWizardService,
+    taskMonitorBuilder,
+    dcosServerGroupConfigurationService,
+    serverGroupCommand,
+    application,
+    title,
+    $timeout,
+    wizardSubFormValidation,
+  ) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
@@ -45,10 +54,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
     };
 
     this.templateSelectionText = {
-      copied: [
-        'account, region, group, cluster name (stack, details)',
-        'container configuration',
-      ],
+      copied: ['account, region, group, cluster name (stack, details)', 'container configuration'],
       notCopied: [],
     };
 
@@ -61,7 +67,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
     function configureCommand() {
       serverGroupCommand.viewState.contextImages = $scope.contextImages;
       $scope.contextImages = null;
-      dcosServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
+      dcosServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
         $scope.state.loaded = true; // allows wizard directive to run (after digest).
         $timeout(initializeWizardState); // wait for digest.
         initializeWatches();
@@ -76,7 +82,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
 
     function initializeWizardState() {
       wizardSubFormValidation
-        .config({ scope: $scope, form: 'form'})
+        .config({ scope: $scope, form: 'form' })
         .register({ page: 'basicSettings', subForm: 'basicSettings' })
         .register({ page: 'network', subForm: 'networkSettings' })
         .register({ page: 'containerSettings', subForm: 'containerSettings' })
@@ -86,22 +92,22 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
         .register({ page: 'volumes', subForm: 'volumes' });
     }
 
-    this.isValid = function () {
-      return $scope.command &&
-        $scope.command.account !== null &&
-        $scope.form.$valid &&
-        v2modalWizardService.isComplete();
+    this.isValid = function() {
+      return (
+        $scope.command && $scope.command.account !== null && $scope.form.$valid && v2modalWizardService.isComplete()
+      );
     };
 
-    this.showSubmitButton = function () {
+    this.showSubmitButton = function() {
       return v2modalWizardService.allPagesVisited();
     };
 
-    this.clone = function () {
+    this.clone = function() {
       let command = angular.copy($scope.command);
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close(command);
       }
+<<<<<<< HEAD
       $scope.taskMonitor.submit(
         function() {
           // put Gatekeeper updates here because for now this is a DC/OS feature.
@@ -123,9 +129,14 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.clone', [
           return serverGroupWriter.cloneServerGroup(command, application);
         }
       );
+=======
+      $scope.taskMonitor.submit(function() {
+        return serverGroupWriter.cloneServerGroup(command, application);
+      });
+>>>>>>> e3d82ed849bef84477b5a893702b0bb5e4b0dd5b
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 

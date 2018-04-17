@@ -5,10 +5,12 @@ import 'jquery-ui';
 // Must come after jquery-ui - we want the bootstrap tooltip, JavaScript is fun
 import 'bootstrap/dist/js/bootstrap.js';
 
-import 'font-awesome/css/font-awesome.css';
+import '@fortawesome/fontawesome-free-webfonts/css/fa-solid.css';
+import '@fortawesome/fontawesome-free-webfonts/css/fa-regular.css';
+import '@fortawesome/fontawesome-free-webfonts/css/fontawesome.css';
 import 'react-select/dist/react-select.css';
-import 'react-virtualized/styles.css'
-import 'react-virtualized-select/styles.css'
+import 'react-virtualized/styles.css';
+import 'react-virtualized-select/styles.css';
 import 'ui-select/dist/select.css';
 import '@spinnaker/styleguide/public/styleguide.min.css';
 
@@ -47,6 +49,7 @@ import { MANIFEST_MODULE } from 'core/manifest/manifestWriter.module';
 import { NETWORK_INTERCEPTOR } from './api/network.interceptor';
 
 import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
+import { PAGER_DUTY_MODULE } from 'core/pagerDuty/pagerDuty.module';
 import { PIPELINE_MODULE } from './pipeline/pipeline.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
 import { REACT_MODULE } from './reactShims';
@@ -58,6 +61,7 @@ import { SUBNET_MODULE } from './subnet/subnet.module';
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 
+import * as State from './state';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -83,7 +87,6 @@ module(CORE_MODULE, [
   ARTIFACT_MODULE,
   AUTHENTICATION_MODULE,
 
-  require('./cache/caches.module').name,
   CANCEL_MODAL_MODULE,
   CLOUD_PROVIDER_MODULE,
   CONFIG_MODULE,
@@ -115,6 +118,7 @@ module(CORE_MODULE, [
   require('./notification/notifications.module').name,
 
   PAGE_TITLE_MODULE,
+  PAGER_DUTY_MODULE,
   PIPELINE_TEMPLATE_MODULE,
   PIPELINE_MODULE,
   require('./presentation/presentation.module').name,
@@ -136,6 +140,8 @@ module(CORE_MODULE, [
   WIDGETS_MODULE,
 
   require('./validation/validation.module').name,
-  STYLEGUIDE_MODULE
-]);
-
+  STYLEGUIDE_MODULE,
+]).run(() => {
+  // initialize all the stateful services
+  State.initialize();
+});

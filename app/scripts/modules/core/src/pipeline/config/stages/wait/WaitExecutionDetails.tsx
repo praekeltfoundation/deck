@@ -12,7 +12,7 @@ export function WaitExecutionDetails(props: IExecutionDetailsSectionProps) {
       <StageExecutionLogs stage={props.stage} />
     </ExecutionDetailsSection>
   );
-};
+}
 
 export namespace WaitExecutionDetails {
   export const title = 'waitConfig';

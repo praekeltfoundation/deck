@@ -24,11 +24,7 @@ export class SubmitButton extends React.Component<ISubmitButtonProps> {
         onClick={onClick ? onClick : noop}
         type={isFormSubmit ? 'submit' : 'button'}
       >
-        { !submitting && (
-          <i className="fa fa-check-circle-o"/>
-        ) || (
-          <ButtonBusyIndicator/>
-        )}&nbsp;
+        {(!submitting && <i className="far fa-check-circle" />) || <ButtonBusyIndicator />}&nbsp;
         {label || (isNew ? 'Create' : 'Update')}
       </Button>
     );

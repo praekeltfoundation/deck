@@ -3,21 +3,27 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, EXPECTED_ARTIFACT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
 import { GCEProviderSettings } from 'google/gce.settings';
 
-module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
-  ACCOUNT_SERVICE,
-  INSTANCE_TYPE_SERVICE,
-  NAMING_SERVICE,
-  require('google/common/xpnNaming.gce.service.js').name,
-  require('./../../instance/custom/customInstanceBuilder.gce.service.js').name,
-  require('./wizard/hiddenMetadataKeys.value.js').name,
-])
-  .factory('gceServerGroupCommandBuilder', function ($q, accountService, instanceTypeService, namingService,
-                                                     gceCustomInstanceBuilderService, gceServerGroupHiddenMetadataKeys,
-                                                     gceXpnNamingService) {
-
+module.exports = angular
+  .module('spinnaker.gce.serverGroupCommandBuilder.service', [
+    ACCOUNT_SERVICE,
+    EXPECTED_ARTIFACT_SERVICE,
+    INSTANCE_TYPE_SERVICE,
+    require('google/common/xpnNaming.gce.service.js').name,
+    require('./../../instance/custom/customInstanceBuilder.gce.service.js').name,
+    require('./wizard/hiddenMetadataKeys.value.js').name,
+  ])
+  .factory('gceServerGroupCommandBuilder', function(
+    $q,
+    accountService,
+    expectedArtifactService,
+    instanceTypeService,
+    gceCustomInstanceBuilderService,
+    gceServerGroupHiddenMetadataKeys,
+    gceXpnNamingService,
+  ) {
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
     //   2) Each machine type appears in exactly one category.
@@ -43,7 +49,10 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
     function extractSubnetName(serverGroup) {
       let projectId = gceXpnNamingService.deriveProjectId(serverGroup.launchConfig.instanceTemplate);
-      let subnetworkUrl = _.get(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork');
+      let subnetworkUrl = _.get(
+        serverGroup,
+        'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork',
+      );
       return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, subnetworkUrl);
     }
 
@@ -52,23 +61,21 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     }
 
     function extractLoadBalancers(asg) {
-      return ['load-balancer-names', 'global-load-balancer-names']
-        .reduce((loadBalancers, property) => {
-          if (asg[property]) {
-            loadBalancers = loadBalancers.concat(asg[property]);
-          }
-          return loadBalancers;
-        }, []);
+      return ['load-balancer-names', 'global-load-balancer-names'].reduce((loadBalancers, property) => {
+        if (asg[property]) {
+          loadBalancers = loadBalancers.concat(asg[property]);
+        }
+        return loadBalancers;
+      }, []);
     }
 
-    function extractLoadBalancersFromMetadata (metadata) {
-      return ['load-balancer-names', 'global-load-balancer-names']
-        .reduce((loadBalancers, property) => {
-          if (metadata[property]) {
-            loadBalancers = loadBalancers.concat(metadata[property].split(','));
-          }
-          return loadBalancers;
-        }, []);
+    function extractLoadBalancersFromMetadata(metadata) {
+      return ['load-balancer-names', 'global-load-balancer-names'].reduce((loadBalancers, property) => {
+        if (metadata[property]) {
+          loadBalancers = loadBalancers.concat(metadata[property].split(','));
+        }
+        return loadBalancers;
+      }, []);
     }
 
     function populateDisksFromExisting(disks, command) {
@@ -92,13 +99,16 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       if (persistentDisks.length) {
         command.disks = persistentDisks.concat(localSSDDisks);
         return instanceTypeService
-          .getInstanceTypeDetails(command.selectedProvider, _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType)
+          .getInstanceTypeDetails(
+            command.selectedProvider,
+            _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType,
+          )
           .then(instanceTypeDetails => {
             command.viewState.instanceTypeDetails = instanceTypeDetails;
             calculateOverriddenStorageDescription(instanceTypeDetails, command);
           });
       } else {
-        command.disks = [{type: 'pd-ssd', sizeGb: 10}].concat(localSSDDisks);
+        command.disks = [{ type: 'pd-ssd', sizeGb: 10 }].concat(localSSDDisks);
         return $q.when(null);
       }
     }
@@ -110,13 +120,16 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       if (persistentDisks.length) {
         command.disks = persistentDisks.concat(localSSDDisks);
         return instanceTypeService
-          .getInstanceTypeDetails(command.selectedProvider, _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType)
+          .getInstanceTypeDetails(
+            command.selectedProvider,
+            _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType,
+          )
           .then(instanceTypeDetails => {
             command.viewState.instanceTypeDetails = instanceTypeDetails;
             calculateOverriddenStorageDescription(instanceTypeDetails, command);
           });
       } else {
-        command.disks = [{type: 'pd-ssd', sizeGb: 10}].concat(localSSDDisks);
+        command.disks = [{ type: 'pd-ssd', sizeGb: 10 }].concat(localSSDDisks);
         return $q.when(null);
       }
     }
@@ -209,8 +222,11 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
             customUserDataKeys = getCustomUserDataKeys(customUserData);
             command.userData = customUserData;
           }
-          metadataItems.forEach(function (metadataItem) {
-            if (!_.includes(customUserDataKeys, metadataItem.key) && !_.includes(gceServerGroupHiddenMetadataKeys, metadataItem.key)) {
+          metadataItems.forEach(function(metadataItem) {
+            if (
+              !_.includes(customUserDataKeys, metadataItem.key) &&
+              !_.includes(gceServerGroupHiddenMetadataKeys, metadataItem.key)
+            ) {
               command.instanceMetadata[metadataItem.key] = metadataItem.value;
             }
           });
@@ -228,7 +244,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
     function getCustomUserDataKeys(customUserData) {
       let customUserDataKeys = [];
-      customUserData.split(/\n|,/).forEach(function (userDataItem) {
+      customUserData.split(/\n|,/).forEach(function(userDataItem) {
         let customUserDataKey = userDataItem.split('=')[0];
         customUserDataKeys.push(customUserDataKey);
       });
@@ -238,7 +254,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     function populateTags(instanceTemplateTags, command) {
       if (instanceTemplateTags && instanceTemplateTags.items) {
         _.map(instanceTemplateTags.items, function(tag) {
-          command.tags.push({value: tag});
+          command.tags.push({ value: tag });
         });
       }
     }
@@ -275,8 +291,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         var defaultCredentialsAreValid = defaultCredentials && gceAccountNames.includes(defaultCredentials);
 
-        command.credentials =
-          defaultCredentialsAreValid ? defaultCredentials : (firstGCEAccount || 'my-account-name');
+        command.credentials = defaultCredentialsAreValid ? defaultCredentials : firstGCEAccount || 'my-account-name';
       });
     }
 
@@ -286,8 +301,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       var defaultCredentials = defaults.account || GCEProviderSettings.defaults.account;
       var defaultRegion = defaults.region || GCEProviderSettings.defaults.region;
       var defaultZone = defaults.zone || GCEProviderSettings.defaults.zone;
-      var associatePublicIpAddress = _.has(application, 'attributes.providerSettings.gce.associatePublicIpAddress') ?
-        application.attributes.providerSettings.gce.associatePublicIpAddress : true;
+      var associatePublicIpAddress = _.has(application, 'attributes.providerSettings.gce.associatePublicIpAddress')
+        ? application.attributes.providerSettings.gce.associatePublicIpAddress
+        : true;
 
       var command = {
         application: application.name,
@@ -304,14 +320,12 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         capacity: {
           min: 0,
           max: 0,
-          desired: 1
+          desired: 1,
         },
         backendServiceMetadata: [],
         minCpuPlatform: '(Automatic)',
-        disks: [
-          { type: 'pd-ssd', sizeGb: 10 },
-          { type: 'local-ssd', sizeGb: 375 },
-        ],
+        disks: [{ type: 'pd-ssd', sizeGb: 10 }, { type: 'local-ssd', sizeGb: 375 }],
+        imageSource: 'priorStage',
         instanceMetadata: {},
         tags: [],
         labels: {},
@@ -319,12 +333,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         automaticRestart: true,
         onHostMaintenance: 'MIGRATE',
         serviceAccountEmail: 'default',
-        authScopes: [
-          'cloud.useraccounts.readonly',
-          'devstorage.read_only',
-          'logging.write',
-          'monitoring.write',
-        ],
+        authScopes: ['cloud.useraccounts.readonly', 'devstorage.read_only', 'logging.write', 'monitoring.write'],
         enableTraffic: true,
         cloudProvider: 'gce',
         selectedProvider: 'gce',
@@ -338,29 +347,35 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           listImplicitSecurityGroups: false,
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
-        }
+          expectedArtifacts: [],
+        },
       };
 
-      if (application.attributes && application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+      if (
+        application.attributes &&
+        application.attributes.platformHealthOnlyShowOverride &&
+        application.attributes.platformHealthOnly
+      ) {
         command.interestingHealthProviderNames = ['Google'];
       }
 
-      return attemptToSetValidCredentials(application, defaultCredentials, command)
-        .then(() => command);
-  }
+      return attemptToSetValidCredentials(application, defaultCredentials, command).then(() => command);
+    }
 
     // Only used to prepare view requiring template selecting
-    function buildNewServerGroupCommandForPipeline() {
+    function buildNewServerGroupCommandForPipeline(currentStage, pipeline) {
+      var expectedArtifacts = expectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
       return $q.when({
         viewState: {
+          expectedArtifacts: expectedArtifacts,
           requiresTemplateSelection: true,
-        }
+        },
       });
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
-      var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
+      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
       var command = {
         application: application.name,
@@ -377,7 +392,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         capacity: {
           min: serverGroup.asg.minSize,
           max: serverGroup.asg.maxSize,
-          desired: serverGroup.asg.desiredCapacity
+          desired: serverGroup.asg.desiredCapacity,
         },
         regional: serverGroup.regional,
         network: extractNetworkName(serverGroup),
@@ -398,7 +413,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           account: serverGroup.account,
           region: serverGroup.region,
           serverGroupName: serverGroup.name,
-          asgName: serverGroup.name
+          asgName: serverGroup.name,
         },
         viewState: {
           allImageSelection: null,
@@ -415,7 +430,11 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         command.source.zone = serverGroup.zones[0];
       }
 
-      if (application.attributes && application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+      if (
+        application.attributes &&
+        application.attributes.platformHealthOnlyShowOverride &&
+        application.attributes.platformHealthOnly
+      ) {
         command.interestingHealthProviderNames = ['Google'];
       }
 
@@ -440,34 +459,47 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           populateLabels(serverGroup.instanceTemplateLabels, command);
           populateAuthScopes(serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts, command);
 
-          return populateDisksFromExisting(serverGroup.launchConfig.instanceTemplate.properties.disks, command).then(function() {
-            return command;
-          });
+          return populateDisksFromExisting(serverGroup.launchConfig.instanceTemplate.properties.disks, command).then(
+            function() {
+              return command;
+            },
+          );
         });
       }
 
       return $q.when(command);
     }
 
-    function buildServerGroupCommandFromPipeline(application, originalCluster) {
-
+    function buildServerGroupCommandFromPipeline(application, originalCluster, currentStage, pipeline) {
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
       var zone = pipelineCluster.zone;
-      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('gce', pipelineCluster.instanceType);
+      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType(
+        'gce',
+        pipelineCluster.instanceType,
+      );
       var commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
-      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
+      var asyncLoader = $q.all({
+        command: buildNewServerGroupCommand(application, commandOptions),
+        instanceProfile: instanceTypeCategoryLoader,
+      });
 
       return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
 
+        var expectedArtifacts = expectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
         var viewState = {
           instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
+          expectedArtifacts: expectedArtifacts,
+          showImageSourceSelector: true,
           useSimpleCapacity: !pipelineCluster.autoscalingPolicy,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
-          customInstance: asyncData.instanceProfile === 'buildCustom' ? gceCustomInstanceBuilderService.parseInstanceTypeString(pipelineCluster.instanceType) : null,
+          customInstance:
+            asyncData.instanceProfile === 'buildCustom'
+              ? gceCustomInstanceBuilderService.parseInstanceTypeString(pipelineCluster.instanceType)
+              : null,
         };
 
         var viewOverrides = {
@@ -492,14 +524,13 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           populateCustomMetadata(instanceMetadata, extendedCommand);
           populateAutoHealingPolicy(pipelineCluster, extendedCommand);
 
-          var instanceTemplateTags = {items: extendedCommand.tags};
+          var instanceTemplateTags = { items: extendedCommand.tags };
           extendedCommand.tags = [];
           populateTags(instanceTemplateTags, extendedCommand);
 
           return extendedCommand;
         });
       });
-
     }
 
     return {
@@ -508,5 +539,4 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-});
-
+  });

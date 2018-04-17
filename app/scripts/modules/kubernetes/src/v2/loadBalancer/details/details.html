@@ -18,10 +18,10 @@
           <span class="glyphicon glyphicon-remove"></span>
         </a>
       </div>
-      <div class="header-text">
+      <div class="header-text horizontal middle">
         <cloud-provider-logo provider="ctrl.loadBalancer.cloudProvider" height="'36px'"
                              width="'36px'"></cloud-provider-logo>
-        <h3 select-on-dbl-click>
+        <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
           {{ctrl.loadBalancer.displayName}}
         </h3>
       </div>
@@ -71,6 +71,10 @@
     <collapsible-section heading="Status" expanded="true">
       <div ng-if="!ctrl.loadBalancer.serverGroups.length">No server groups associated with this load balancer</div>
       <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
+    </collapsible-section>
+
+    <collapsible-section heading="Events" expanded="true">
+      <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
     </collapsible-section>
 
     <collapsible-section heading="Labels" expanded="true">

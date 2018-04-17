@@ -8,23 +8,23 @@ import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudPr
 import { SERVER_GROUP_READER, ServerGroupReader } from 'core/serverGroup';
 
 export interface IDeployTemplate {
-  label?: string,
-  serverGroup: IServerGroup,
-  cluster: string,
-  account?: string,
-  region?: string,
-  serverGroupName?: string,
+  label?: string;
+  serverGroup: IServerGroup;
+  cluster: string;
+  account?: string;
+  region?: string;
+  serverGroupName?: string;
 }
 
 export interface ITemplateSelectionText {
-  copied: string[],
-  notCopied: string[],
-  additionalCopyText: string,
+  copied: string[];
+  notCopied: string[];
+  additionalCopyText: string;
 }
 
 // TODO: move this to a better place as we convert the server group wizard modals to TS
 export interface IParentState {
-  loaded: boolean,
+  loaded: boolean;
 }
 
 export class DeployInitializerController implements IController {
@@ -32,6 +32,7 @@ export class DeployInitializerController implements IController {
 
   public application: Application;
   public command: any;
+  public dismiss: () => void;
   public onTemplateSelected: () => void;
   public selectedTemplate: IDeployTemplate;
   public cloudProvider: string;
@@ -51,10 +52,13 @@ export class DeployInitializerController implements IController {
       this.selectedTemplate = this.noTemplate;
     }
 
-    const serverGroups: IServerGroup[] = this.application.getDataSource('serverGroups').data
-      .filter((s: IServerGroup) => s.cloudProvider === this.cloudProvider && s.category === 'serverGroup');
+    const serverGroups: IServerGroup[] = this.application
+      .getDataSource('serverGroups')
+      .data.filter((s: IServerGroup) => s.cloudProvider === this.cloudProvider && s.category === 'serverGroup');
 
-    const grouped = groupBy(serverGroups, (serverGroup) => [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':'));
+    const grouped = groupBy(serverGroups, serverGroup =>
+      [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':'),
+    );
 
     Object.keys(grouped).forEach(key => {
       const latest = sortBy(grouped[key], 'name').pop();
@@ -63,7 +67,7 @@ export class DeployInitializerController implements IController {
         account: latest.account,
         region: latest.region,
         serverGroupName: latest.name,
-        serverGroup: latest
+        serverGroup: latest,
       });
     });
 
@@ -77,7 +81,9 @@ export class DeployInitializerController implements IController {
     const { viewState } = command;
     const baseCommand = this.command;
     viewState.disableImageSelection = true;
+    viewState.showImageSourceSelector = true;
     viewState.disableStrategySelection = baseCommand.viewState.disableStrategySelection || false;
+    viewState.expectedArtifacts = baseCommand.viewState.expectedArtifacts || [];
     viewState.imageId = null;
     viewState.readOnlyFields = baseCommand.viewState.readOnlyFields || {};
     viewState.submitButtonLabel = 'Add';
@@ -88,23 +94,31 @@ export class DeployInitializerController implements IController {
   }
 
   private buildCommandFromTemplate(serverGroup: IServerGroup): IPromise<any> {
-    const commandBuilder: any = this.providerServiceDelegate.getDelegate(this.cloudProvider, 'serverGroup.commandBuilder');
-    return this.serverGroupReader.getServerGroup(this.application.name, serverGroup.account, serverGroup.region, serverGroup.name)
+    const commandBuilder: any = this.providerServiceDelegate.getDelegate(
+      this.cloudProvider,
+      'serverGroup.commandBuilder',
+    );
+    return this.serverGroupReader
+      .getServerGroup(this.application.name, serverGroup.account, serverGroup.region, serverGroup.name)
       .then(details => {
         details.account = serverGroup.account;
         return commandBuilder.buildServerGroupCommandFromExisting(this.application, details, 'editPipeline');
-    });
+      });
   }
 
   private buildEmptyCommand(): IPromise<any> {
-    const commandBuilder: any = this.providerServiceDelegate.getDelegate(this.cloudProvider, 'serverGroup.commandBuilder');
+    const commandBuilder: any = this.providerServiceDelegate.getDelegate(
+      this.cloudProvider,
+      'serverGroup.commandBuilder',
+    );
     return commandBuilder.buildNewServerGroupCommand(this.application, { mode: 'createPipeline' });
   }
 
   private selectTemplate(): IPromise<void> {
-    const buildCommand = this.selectedTemplate === this.noTemplate ?
-      this.buildEmptyCommand() :
-      this.buildCommandFromTemplate(this.selectedTemplate.serverGroup);
+    const buildCommand =
+      this.selectedTemplate === this.noTemplate
+        ? this.buildEmptyCommand()
+        : this.buildCommandFromTemplate(this.selectedTemplate.serverGroup);
     return buildCommand.then((command: any) => this.applyCommandToScope(command));
   }
 
@@ -119,17 +133,17 @@ const component: IComponentOptions = {
     application: '<',
     cloudProvider: '@',
     command: '<',
+    dismiss: '&',
     onTemplateSelected: '&',
     parentState: '<',
     templateSelectionText: '<',
   },
   templateUrl: require('./deployInitializer.component.html'),
-  controller: DeployInitializerController
+  controller: DeployInitializerController,
 };
 
-
 export const DEPLOY_INITIALIZER_COMPONENT = 'spinnaker.core.serverGroup.configure.deployInitializer';
-module(DEPLOY_INITIALIZER_COMPONENT, [
-  PROVIDER_SERVICE_DELEGATE,
-  SERVER_GROUP_READER,
-]).component('deployInitializer', component);
+module(DEPLOY_INITIALIZER_COMPONENT, [PROVIDER_SERVICE_DELEGATE, SERVER_GROUP_READER]).component(
+  'deployInitializer',
+  component,
+);

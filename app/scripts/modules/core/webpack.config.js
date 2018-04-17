@@ -5,13 +5,19 @@ const basePath = path.join(__dirname, '..', '..', '..', '..');
 const NODE_MODULE_PATH = path.join(basePath, 'node_modules');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
-const webpack = require('webpack');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
+const WEBPACK_THREADS = Math.max(require('physical-cpu-count') - 1, 1);
+
+const WATCH = process.env.WATCH === 'true';
+const WEBPACK_MODE = WATCH ? 'development' : 'production';
+const IS_PRODUCTION = WEBPACK_MODE === 'production';
 
 module.exports = {
   context: basePath,
-  stats: 'errors-only',
-  devtool: 'source-map',
+  mode: WEBPACK_MODE,
+  stats: 'minimal',
+  watch: WATCH,
   entry: {
     lib: path.join(__dirname, 'src', 'index.ts'),
   },
@@ -22,47 +28,52 @@ module.exports = {
     libraryTarget: 'umd',
     umdNamedDefine: true,
   },
-  externals: [
-    'root/version.json',
-    nodeExternals({ modulesDir: '../../../../node_modules' }),
-  ],
+  devtool: 'source-map',
+  optimization: {
+    minimizer: IS_PRODUCTION
+      ? [
+          new UglifyJSPlugin({
+            cache: true,
+            parallel: true,
+            sourceMap: true,
+            uglifyOptions: { mangle: false },
+          }),
+        ]
+      : [], // disable minification in development mode
+  },
   resolve: {
     extensions: ['.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.less', '.html'],
-    modules: [
-      NODE_MODULE_PATH,
-      path.resolve('.'),
-    ],
+    modules: [NODE_MODULE_PATH, path.resolve('.')],
     alias: {
       '@spinnaker/core': path.join(__dirname, 'src'),
-      'core': path.join(__dirname, 'src'),
-      'root': basePath,
-      'coreImports': path.resolve(__dirname, 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
-    }
+      core: path.join(__dirname, 'src'),
+      root: basePath,
+      coreImports: path.resolve(__dirname, 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
+    },
   },
-  watch:  process.env.WATCH === 'true',
   module: {
     rules: [
       {
         test: /\.js$/,
         use: [
           { loader: 'cache-loader' },
-          { loader: 'thread-loader', options: { workers: 3 } },
+          { loader: 'thread-loader', options: { workers: WEBPACK_THREADS } },
           { loader: 'babel-loader' },
           { loader: 'envify-loader' },
-          { loader: 'eslint-loader' } ,
+          { loader: 'eslint-loader' },
         ],
-        exclude: exclusionPattern
+        exclude: exclusionPattern,
       },
       {
         test: /\.tsx?$/,
         use: [
           { loader: 'cache-loader' },
-          { loader: 'thread-loader', options: { workers: 3 } },
+          { loader: 'thread-loader', options: { workers: WEBPACK_THREADS } },
           { loader: 'babel-loader' },
           { loader: 'ts-loader', options: { happyPackMode: true } },
           { loader: 'tslint-loader' },
         ],
-        exclude: exclusionPattern
+        exclude: exclusionPattern,
       },
       {
         test: /\.less$/,
@@ -75,48 +86,26 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: [
-          { loader: 'style-loader' },
-          { loader: 'css-loader' },
-          { loader: 'postcss-loader' },
-        ]
+        use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
       },
       {
         test: /\.html$/,
         exclude: exclusionPattern,
         use: [
-          { loader: 'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname)) + '&prefix=core' },
+          { loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '&prefix=core' },
           { loader: 'html-loader' },
-        ]
-      },
-      {
-        test: /\.json$/,
-        use: [
-          { loader: 'json-loader' },
         ],
       },
       {
         test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
-        use: [
-          { loader: 'file-loader', options: { name: '[name].[hash:5].[ext]'} },
-        ],
+        use: [{ loader: 'file-loader', options: { name: '[name].[hash:5].[ext]' } }],
       },
       {
         test: require.resolve('jquery'),
-        use: [
-          { loader: 'expose-loader?$' },
-          { loader: 'expose-loader?jQuery' },
-        ],
+        use: [{ loader: 'expose-loader?$' }, { loader: 'expose-loader?jQuery' }],
       },
     ],
   },
-  plugins: [
-    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
-    new webpack.optimize.UglifyJsPlugin({
-      mangle: false,
-      beautify: true,
-      comments: true,
-      sourceMap: true,
-    }),
-  ],
+  plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })],
+  externals: ['root/version.json', nodeExternals({ modulesDir: '../../../../node_modules' })],
 };

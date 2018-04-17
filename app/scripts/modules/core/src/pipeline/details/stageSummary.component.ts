@@ -1,5 +1,6 @@
 import { module, IController, IComponentOptions, IScope } from 'angular';
 import { StateParams, StateService } from '@uirouter/angularjs';
+import { HtmlRenderer, Parser } from 'commonmark';
 
 import { Application } from 'core/application';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStage } from 'core/domain';
@@ -12,10 +13,15 @@ export class StageSummaryController implements IController {
   public stage: IExecutionStage;
   public stageSummary: IExecutionStageSummary;
 
-  constructor(private $scope: IScope,
-              private $stateParams: StateParams,
-              private $state: StateService,
-              private pipelineConfig: PipelineConfigProvider) {
+  private parser: Parser = new Parser();
+  private renderer: HtmlRenderer = new HtmlRenderer();
+
+  constructor(
+    private $scope: IScope,
+    private $stateParams: StateParams,
+    private $state: StateService,
+    private pipelineConfig: PipelineConfigProvider,
+  ) {
     'ngInject';
   }
 
@@ -47,6 +53,12 @@ export class StageSummaryController implements IController {
     }
   }
 
+  public getComments(): string {
+    // cast comments field to string in case it is set to a number via SpEL
+    const parsed = this.parser.parse(this.stageSummary.comments + '');
+    return this.renderer.render(parsed);
+  }
+
   public getCurrentStep() {
     return parseInt(this.$stateParams.step, 10);
   }
@@ -74,9 +86,13 @@ export class StageSummaryController implements IController {
     if (newStepDetails !== null) {
       const newState = { step: newStepDetails } as any;
       const stage = parseInt(this.$stateParams.stage, 10);
-      if (stage) { newState.stage = stage; }
+      if (stage) {
+        newState.stage = stage;
+      }
       const subStage = parseInt(this.$stateParams.subStage, 10);
-      if (subStage) { newState.subStage = subStage; }
+      if (subStage) {
+        newState.subStage = subStage;
+      }
       this.$state.go('.', newState);
     }
   }
@@ -95,5 +111,4 @@ export class StageSummaryComponent implements IComponentOptions {
 }
 
 export const STAGE_SUMMARY_COMPONENT = 'spinnaker.core.pipeline.stageSummary.component';
-module(STAGE_SUMMARY_COMPONENT, [PIPELINE_CONFIG_PROVIDER])
-  .component('stageSummary', new StageSummaryComponent());
+module(STAGE_SUMMARY_COMPONENT, [PIPELINE_CONFIG_PROVIDER]).component('stageSummary', new StageSummaryComponent());

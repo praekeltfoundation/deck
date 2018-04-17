@@ -122,7 +122,6 @@ export interface IDataSourceConfig {
    * (Optional) The application has potentially two default fields for each provider: region and credentials. These fields will
    * only have a value if every data source that contributes values has just one unique value for each provider. Useful
    * for setting initial values in modal dialogs when creating new server groups, load balancers, etc.
-
    * If the data source should contribute to the application's default region or credentials, this field should be set
    * to the field name that represents the provider on each data item.
    */
@@ -148,7 +147,7 @@ export interface IDataSourceConfig {
    * the link in the application's header.
    *
    * If the "visible" field is set to false, this value is ignored; if "visible" is true and this field is omitted, the
-   * tab will use ".insight.{key}" as the sref value in the application header tab
+   * data source will not generate any navigation elements
    */
   sref?: string;
 
@@ -158,36 +157,16 @@ export interface IDataSourceConfig {
    * Default: true
    */
   visible?: boolean;
-}
 
-/**
- * @deprecated just use the IDataSourceConfig interface
- */
-export class DataSourceConfig implements IDataSourceConfig {
-  public activeState: string;
-  public afterLoad: (application: Application) => void;
-  public autoActivate = false;
-  public badge: string;
-  public credentialsField: string;
-  public description: string;
-  public icon: string;
-  public key: string;
-  public label: string;
-  public lazy = false;
-  public loader: (application: Application) => IPromise<any>;
-  public onLoad: (application: Application, result: any) => IPromise<any>;
-  public optIn = false;
-  public optional = false;
-  public primary = false;
-  public providerField: string;
-  public regionField: string;
-  public requireConfiguredApp = false;
-  public sref: string;
-  public visible = true;
+  /**
+   * (Optional) a data source that will only be available and visible if this data source (by key) is enabled
+   */
+  requiresDataSource?: string;
 
-  constructor(config: IDataSourceConfig) {
-    Object.assign(this, config);
-  }
+  /**
+   * (Optional) Determines which second-level navigation menu this data source will belong to
+   */
+  category?: string;
 }
 
 @BindAll()
@@ -204,6 +183,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   public icon: string;
   public key: string;
   public label: string;
+  public category: string;
   public lazy = false;
   public loader: (application: Application) => IPromise<any>;
   public onLoad: (application: Application, result: any) => IPromise<any>;
@@ -216,6 +196,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   public sref: string;
   public visible = true;
   public hidden = false;
+  public requiresDataSource: string;
 
   /**
    * State flag that indicates whether the data source has been loaded. If the data source does not have a declared
@@ -266,9 +247,9 @@ export class ApplicationDataSource implements IDataSourceConfig {
    */
   public lastRefresh: number;
 
-  private refreshStream: Subject<void> = new Subject();
+  public refresh$: Subject<void> = new Subject();
 
-  private refreshFailureStream: Subject<any> = new Subject();
+  public refreshFailure$: Subject<any> = new Subject();
 
   /**
    * Simple counter used to track the most recent refresh call to avoid data stomping
@@ -281,7 +262,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * Dumb queue to fire when the most recent refresh call finishes
    * (will go away when we switch from Promises to Observables)
    */
-  private refreshQueue: IDeferred<void>[] = [];
+  private refreshQueue: Array<IDeferred<void>> = [];
 
   /**
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated
@@ -289,27 +270,25 @@ export class ApplicationDataSource implements IDataSourceConfig {
    */
   public dataUpdated(): void {
     if (this.loaded) {
-      this.refreshStream.next(null);
+      this.refresh$.next(null);
     }
   }
 
-  constructor(config: IDataSourceConfig,
-              private application: Application,
-              private $q: IQService,
-              private $log: ILogService,
-              private $filter: any,
-              $uiRouter: UIRouter) {
+  constructor(
+    config: IDataSourceConfig,
+    private application: Application,
+    private $q: IQService,
+    private $log: ILogService,
+    private $filter: any,
+    $uiRouter: UIRouter,
+  ) {
     Object.assign(this, config);
-
-    if (!config.sref && config.visible !== false) {
-      this.sref = '.insight.' + config.key;
-    }
 
     if (!config.label && this.$filter) {
       this.label = this.$filter('robotToHuman')(config.key);
     }
 
-    if (!config.activeState) {
+    if (!config.activeState && this.sref) {
       this.activeState = '**' + this.sref + '.**';
     }
 
@@ -329,10 +308,10 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * @return a method to call to unsubscribe
    */
   public onNextRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
-    const success: Subscription = this.refreshStream.take(1).subscribe(method);
+    const success: Subscription = this.refresh$.take(1).subscribe(method);
     let failure: Subscription = null;
     if (failureMethod) {
-      failure = this.refreshFailureStream.take(1).subscribe(failureMethod);
+      failure = this.refreshFailure$.take(1).subscribe(failureMethod);
     }
     const unsubscribe = () => {
       success.unsubscribe();
@@ -357,10 +336,10 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * @return a method to call to unsubscribe
    */
   public onRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
-    const success: Subscription = this.refreshStream.subscribe(method);
+    const success: Subscription = this.refresh$.subscribe(method);
     let failure: Subscription = null;
     if (failureMethod) {
-      failure = this.refreshFailureStream.subscribe(failureMethod);
+      failure = this.refreshFailure$.subscribe(failureMethod);
     }
     const unsubscribe = () => {
       success.unsubscribe();
@@ -393,8 +372,8 @@ export class ApplicationDataSource implements IDataSourceConfig {
     } else if (this.loadFailure) {
       deferred.reject();
     } else {
-      this.refreshStream.take(1).subscribe(deferred.resolve);
-      this.refreshFailureStream.take(1).subscribe(deferred.reject);
+      this.refresh$.take(1).subscribe(deferred.resolve);
+      this.refreshFailure$.take(1).subscribe(deferred.reject);
     }
     deferred.promise.catch(() => {});
     return deferred.promise;
@@ -446,7 +425,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
     this.currentLoadCall += 1;
     const loadCall = this.currentLoadCall;
     this.loader(this.application)
-      .then((result) => {
+      .then(result => {
         if (loadCall < this.currentLoadCall) {
           // discard, more recent call has come in
           // TODO: this will all be cleaner with Observables
@@ -470,12 +449,12 @@ export class ApplicationDataSource implements IDataSourceConfig {
         this.refreshQueue.forEach(d => d.resolve());
         this.refreshQueue.length = 0;
       })
-      .catch((rejection) => {
+      .catch(rejection => {
         if (loadCall === this.currentLoadCall) {
           this.$log.warn(`Error retrieving ${this.key}`, rejection);
           this.loading = false;
           this.loadFailure = true;
-          this.refreshFailureStream.next(rejection);
+          this.refreshFailure$.next(rejection);
           // resolve, don't reject - the refreshFailureStream and loadFailure flags signal the rejection
           this.refreshQueue.forEach(d => d.resolve(rejection));
           this.refreshQueue.length = 0;

@@ -1,43 +1,46 @@
 'use strict';
 
-const path = require('path');
-const webpackCommon = require('./webpack.common');
-const webpackConfig = webpackCommon(true);
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const prodWebpackConfig = require('./webpack.config')();
+const webpackConfig = {
+  mode: 'development',
+  module: prodWebpackConfig.module,
+  resolve: prodWebpackConfig.resolve,
+  plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true })],
+};
 
-module.exports = function (config) {
+module.exports = function(config) {
   config.set({
     autoWatch: true,
 
     // base path, that will be used to resolve files and exclude
-    basePath: '',
+    basePath: '.',
 
     // testing framework to use (jasmine/mocha/qunit/...)
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
-    files: [
-      {pattern: './karma-shim.js', watched: false}
-    ],
+    files: [{ pattern: './karma-shim.js', watched: false }],
 
     preprocessors: {
-      './karma-shim.js': ['webpack']
+      './karma-shim.js': ['webpack', 'sourcemap'],
     },
 
     webpack: webpackConfig,
 
     webpackMiddleware: {
-      noInfo: true,
+      stats: 'minimal',
     },
 
     customLaunchers: {
       Chrome_travis_ci: {
         base: 'Chrome',
-        flags: ['--no-sandbox']
+        flags: ['--no-sandbox'],
       },
       ChromeActive: {
         base: 'Chrome',
-        flags: ['--override-plugin-power-saver-for-testing=0']
-      }
+        flags: ['--override-plugin-power-saver-for-testing=0'],
+      },
     },
 
     plugins: [
@@ -45,7 +48,7 @@ module.exports = function (config) {
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
-      require('karma-mocha-reporter'),
+      require('karma-sourcemap-loader'),
     ],
 
     // list of files / patterns to exclude
@@ -54,9 +57,7 @@ module.exports = function (config) {
     // web server port
     port: 8081,
 
-    browsers: [
-      process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive',
-    ],
+    browsers: [process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive'],
 
     colors: true,
 
@@ -65,21 +66,17 @@ module.exports = function (config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['progress', 'mocha'],
+    reporters: ['dots'],
 
-    // the default configuration
+    // put test results in a well known file if 'jenkins' reporter is being used
     junitReporter: {
-     outputFile: 'test-results.xml'
-    },
-
-    mochaReporter: {
-     ignoreSkipped: true,
+      outputFile: 'test-results.xml',
     },
 
     client: {
       captureConsole: true,
     },
 
-    browserNoActivityTimeout: 200000
+    browserNoActivityTimeout: 200000,
   });
 };

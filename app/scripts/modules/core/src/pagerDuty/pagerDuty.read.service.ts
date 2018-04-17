@@ -9,21 +9,24 @@ export interface IPagerDutyService {
   lastIncidentTimestamp: string;
   name: string;
   policy: string;
+  status: string;
 }
 
 export interface IOnCall {
   escalation_policy: {
     id: string;
-  },
+  };
   escalation_level: number;
   user: {
     summary: string;
     html_url: string;
-  }
+  };
 }
 
 export class PagerDutyReader {
-  public constructor(private API: Api) { 'ngInject'; }
+  public constructor(private API: Api) {
+    'ngInject';
+  }
 
   public listServices(): Observable<IPagerDutyService[]> {
     return Observable.fromPromise(this.API.one('pagerDuty/services').getList());

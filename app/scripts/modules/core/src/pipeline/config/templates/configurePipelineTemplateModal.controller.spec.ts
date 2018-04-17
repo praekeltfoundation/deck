@@ -2,7 +2,7 @@ import { mock, IScope, IQService } from 'angular';
 
 import {
   CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL,
-  ConfigurePipelineTemplateModalController
+  ConfigurePipelineTemplateModalController,
 } from './configurePipelineTemplateModal.controller';
 import { IVariable } from './inputs/variableInput.service';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
@@ -11,22 +11,34 @@ import { REACT_MODULE, ReactInjector } from 'core/reactShims';
 import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
 
 describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
-  let ctrl: ConfigurePipelineTemplateModalController,
-    $scope: IScope,
-    $q: IQService,
-    application: Application;
+  let ctrl: ConfigurePipelineTemplateModalController, $scope: IScope, $q: IQService, application: Application;
 
   // Hard to get the right newline and space characters with template strings.
-  const yaml = '- name: orca-test\n' +
-               '  region: us-west-2\n' +
-               '  availabilityZones: []\n' +
-               '  capacity: 1\n' +
-               '  keyPair: example-keypair\n' +
-               '  loadBalancers:\n' +
-               '   - orca-test\n' +
-               '  securityGroups: []\n' +
-               '  strategy: highlander\n' +
-               '  instanceType: m3.xlarge';
+  const yaml =
+    '- name: orca-test\n' +
+    '  region: us-west-2\n' +
+    '  availabilityZones: []\n' +
+    '  capacity: 1\n' +
+    '  keyPair: example-keypair\n' +
+    '  loadBalancers:\n' +
+    '    - orca-test\n' +
+    '  securityGroups: []\n' +
+    '  strategy: highlander\n' +
+    '  instanceType: m3.xlarge\n';
+
+  const yamlAsObj = [
+    {
+      name: 'orca-test',
+      region: 'us-west-2',
+      availabilityZones: [] as any[],
+      capacity: 1,
+      keyPair: 'example-keypair',
+      loadBalancers: ['orca-test'],
+      securityGroups: [] as any[],
+      strategy: 'highlander',
+      instanceType: 'm3.xlarge',
+    },
+  ];
 
   const template: any = {
     variables: [
@@ -46,7 +58,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
         name: 'someObject',
         group: 'Advanced Settings',
         type: 'object',
-        defaultValue: yaml,
+        defaultValue: yamlAsObj,
       },
       {
         name: 'someList',
@@ -58,8 +70,8 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
         name: 'someInt',
         type: 'int',
         defaultValue: 42,
-      }
-    ]
+      },
+    ],
   };
 
   beforeEach(
@@ -67,36 +79,42 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       APPLICATION_MODEL_BUILDER,
       CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL,
       PIPELINE_TEMPLATE_MODULE,
-      REACT_MODULE
-    )
+      REACT_MODULE,
+    ),
   );
 
   beforeEach(() => {
-    mock.inject(($controller: ng.IControllerService, $rootScope: ng.IRootScopeService, _$q_: IQService, applicationModelBuilder: ApplicationModelBuilder) => {
-      application = applicationModelBuilder.createStandaloneApplication('app');
-      $scope = $rootScope.$new();
-      $q = _$q_;
-      ctrl = $controller('ConfigurePipelineTemplateModalCtrl', {
-        $scope,
-        application,
-        $uibModalInstance: { close: $q.resolve(null) },
-        pipelineTemplateConfig: {
-          config: {
-            pipeline: {
-              name: 'My Managed Pipeline',
-              template: {
-                source: 'spinnaker://myPipelineId',
-              }
-            }
-          }
-        },
-        pipelineId: '1234',
-        executionId: null,
-        isNew: true,
-      }) as ConfigurePipelineTemplateModalController;
-    });
+    mock.inject(
+      (
+        $controller: ng.IControllerService,
+        $rootScope: ng.IRootScopeService,
+        _$q_: IQService,
+        applicationModelBuilder: ApplicationModelBuilder,
+      ) => {
+        application = applicationModelBuilder.createStandaloneApplication('app');
+        $scope = $rootScope.$new();
+        $q = _$q_;
+        ctrl = $controller('ConfigurePipelineTemplateModalCtrl', {
+          $scope,
+          application,
+          $uibModalInstance: { close: $q.resolve(null) },
+          pipelineTemplateConfig: {
+            config: {
+              pipeline: {
+                name: 'My Managed Pipeline',
+                template: {
+                  source: 'spinnaker://myPipelineId',
+                },
+              },
+            },
+          },
+          pipelineId: '1234',
+          executionId: null,
+          isNew: true,
+        }) as ConfigurePipelineTemplateModalController;
+      },
+    );
   });
-
 
   describe('data initialization', () => {
     beforeEach(() => {
@@ -135,13 +153,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       ctrl.initialize();
       $scope.$digest();
 
-      expect(ctrl.variables.map(v => v.value)).toEqual([
-        'my-credentials',
-        'gce',
-        'key: value\n',
-        ['a'],
-        123
-      ]);
+      expect(ctrl.variables.map(v => v.value)).toEqual(['my-credentials', 'gce', 'key: value\n', ['a'], 123]);
     });
   });
 
@@ -156,8 +168,8 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
             group: 'Basic Settings',
             type: 'list',
             defaultValue: ['a', 'b', 'c'],
-          }
-        ]
+          },
+        ],
       };
 
       templateB = {
@@ -173,9 +185,9 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
             group: 'Basic Settings',
             type: 'list',
             defaultValue: [1, 2, 3],
-          }
-        ]
-      }
+          },
+        ],
+      };
     });
 
     // This test should replicate the following steps:
@@ -239,19 +251,9 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       expect(templateConfig.config.pipeline.variables).toEqual({
         credentials: 'my-google-account',
         cloudProvider: 'gce',
-        someObject: [{
-          name: 'orca-test',
-          region: 'us-west-2',
-          availabilityZones: [],
-          capacity: 1,
-          keyPair: 'example-keypair',
-          loadBalancers: ['orca-test'],
-          securityGroups: [],
-          strategy: 'highlander',
-          instanceType: 'm3.xlarge'
-        }],
+        someObject: yamlAsObj,
         someList: ['a', 'b', 'c'],
-        someInt: 42
+        someInt: 42,
       });
     });
   });
@@ -261,7 +263,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       return {
         type,
         value,
-        name: 'variableName'
+        name: 'variableName',
       };
     };
 
@@ -270,7 +272,6 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
         return $q.resolve(template);
       });
     });
-
 
     it('verifies that input variables are not empty', () => {
       ctrl.initialize();
