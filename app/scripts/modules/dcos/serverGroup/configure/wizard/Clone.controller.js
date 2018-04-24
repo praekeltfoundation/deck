@@ -10,6 +10,7 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
+    SECRET_MANAGEMENT_SERVICE,
     require('../configuration.service.js').name,
   ])
   .controller('dcosCloneServerGroupController', function(
@@ -24,6 +25,7 @@ module.exports = angular
     serverGroupCommand,
     application,
     title,
+    secretManagementService,
     $timeout,
     wizardSubFormValidation,
   ) {
@@ -107,33 +109,32 @@ module.exports = angular
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close(command);
       }
-<<<<<<< HEAD
-      $scope.taskMonitor.submit(
-        function() {
-          // put Gatekeeper updates here because for now this is a DC/OS feature.
-          // in the future this gets to live in the serverGroup cloning place.
-            secretManagementService.addGatekeeperPolicies(command.gatekeeperPolicy).then(function successCallback(response) {
-              console.info('Success!');
-              console.info(JSON.stringify(response,null,'    '));
-              secretManagementService.reloadGatekeeperPolicies().then(function successCallback(response) {
+      $scope.taskMonitor.submit(function() {
+        // put Gatekeeper updates here because for now this is a DC/OS feature.
+        // in the future this gets to live in the serverGroup cloning place.
+        secretManagementService.addGatekeeperPolicies(command.gatekeeperPolicy).then(
+          function successCallback(response) {
+            console.info('Success!');
+            console.info(JSON.stringify(response, null, '    '));
+            secretManagementService.reloadGatekeeperPolicies().then(
+              function successCallback(response) {
                 console.info('Success!');
-                console.info(JSON.stringify(response,null,'    '));
-              }, function errorCallback(response) {
+                console.info(JSON.stringify(response, null, '    '));
+              },
+              function errorCallback(response) {
                 console.info('Failure!');
                 $scope.command.error = response.status;
-                console.info(JSON.stringify(response.status,null,'    '));
-            });}, function errorCallback(response) {
+                console.info(JSON.stringify(response.status, null, '    '));
+              },
+            );
+          },
+          function errorCallback(response) {
             console.info('Failure!');
-            console.info(JSON.stringify(response.status,null,'    '));
-          });
-          return serverGroupWriter.cloneServerGroup(command, application);
-        }
-      );
-=======
-      $scope.taskMonitor.submit(function() {
+            console.info(JSON.stringify(response.status, null, '    '));
+          },
+        );
         return serverGroupWriter.cloneServerGroup(command, application);
       });
->>>>>>> e3d82ed849bef84477b5a893702b0bb5e4b0dd5b
     };
 
     this.cancel = function() {

@@ -165,10 +165,7 @@ module.exports = angular
         cloudProvider: 'dcos',
         selectedProvider: 'dcos',
         viewModel: {},
-<<<<<<< HEAD
         gatekeeperPolicy: {},
-=======
->>>>>>> e3d82ed849bef84477b5a893702b0bb5e4b0dd5b
       };
 
       attemptToSetValidAccount(application, defaultAccount, defaultDcosCluster, command);

@@ -218,17 +218,11 @@ export class ClusterService {
   }
 
   private findStagesWithServerGroupInfo(stages: IExecutionStage[]): IExecutionStage[] {
-<<<<<<< HEAD
-    return (stages || []).filter(stage =>
-      (['createServerGroup', 'deploy', 'destroyAsg', 'resizeAsg', 'updateGatekeeperPolicies'].includes(stage.type) && has(stage.context, 'deploy.server.groups')) ||
-        (stage.type === 'disableAsg' && has(stage.context, 'targetop.asg.disableAsg.name'))
-=======
     return (stages || []).filter(
       stage =>
         (['createServerGroup', 'deploy', 'destroyAsg', 'resizeAsg'].includes(stage.type) &&
           has(stage.context, 'deploy.server.groups')) ||
         (stage.type === 'disableAsg' && has(stage.context, 'targetop.asg.disableAsg.name')),
->>>>>>> e3d82ed849bef84477b5a893702b0bb5e4b0dd5b
     );
   }
 
