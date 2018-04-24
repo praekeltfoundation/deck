@@ -71,7 +71,7 @@ module.exports = angular
     };
 
     this.updatePolicy = function(index) {
-      $scope.command.viewModel.secrets[index].policy = $scope.command.viewModel.secrets[index].policy;
+      $scope.command.viewModel.secrets[index].policy = $scope.secrets.policy;
     };
 
     this.setSecretOutputPath = function() {
@@ -159,7 +159,7 @@ module.exports = angular
           if (item.backend == 'database') {
             sec.push({
               id: item.name,
-              backend: s[0],
+              backend: item.backend,
               endpoint: s[1] + ':' + s[2] + '/' + s[3],
               vault_path: item.backend + '/creds/' + item.policy,
               schema: s[3],
@@ -177,7 +177,6 @@ module.exports = angular
               set_role: item.setRole,
             });
           }
-          console.info(sec);
         }
         item.checkUnique = allNames.filter(name => item.name !== name);
         item.requiresSetRole = item.policy && item.policy.toLowerCase().indexOf('postgres') >= 0;
@@ -185,8 +184,6 @@ module.exports = angular
       if ($scope.vault.vaultAddress && $scope.vault.gatekeeperAddress && $scope.vault.credentialPath) {
         $scope.command.env['VAULT_SECRETS'] = JSON.stringify(sec);
         $scope.command.env['VAULTKEEPER_CONFIG'] = JSON.stringify(vaultkeeperConfig);
-        console.info($scope.command.env['VAULT_SECRETS']);
-        console.info($scope.command.env['VAULTKEEPER_CONFIG']);
         $scope.command.env['VAULT_ADDR'] = $scope.vault.vaultAddress;
         $scope.command.env['GATEKEEPER_ADDR'] = $scope.vault.gatekeeperAddress;
         $scope.command.env['CREDENTIAL_PATH'] = $scope.vault.credentialPath;

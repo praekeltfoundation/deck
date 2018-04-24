@@ -7,12 +7,18 @@ describe('dcosServerGroupVaultSecretsController', function() {
   beforeEach(window.module(require('./vaultSecrets.controller.js').name));
 
   beforeEach(
-    window.inject(function($rootScope, $controller, HttpClientModule) {
+    window.inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
 
       scope.command = {};
-      scope.command.viewModel.secrets = [];
+      scope.command.env = {};
       scope.command.viewModel = {};
+      scope.command.viewModel.secrets = [];
+      scope.vaultkeeper = {};
+      scope.vault = {};
+      scope.command.docker = {};
+      scope.command.docker.parameters = [];
+      scope.secrets = {};
 
       controller = $controller('dcosServerGroupVaultSecretsController', {
         $scope: scope,
@@ -23,12 +29,11 @@ describe('dcosServerGroupVaultSecretsController', function() {
   describe('Vault Secrets', function() {
     beforeEach(function() {
       scope.command.env = {};
-      scope.command.secrets1 = [];
       scope.command.viewModel.secrets = [];
     });
 
     it('Vault Secrets spec 1', function() {
-      controller.addEnvironmentVariable();
+      controller.addSecret();
 
       expect(scope.command.viewModel.secrets.length).toEqual(1);
     });
@@ -39,38 +44,38 @@ describe('dcosServerGroupVaultSecretsController', function() {
       controller.addSecret();
 
       scope.command.viewModel.secrets[index].name = 'default';
-      scope.command.viewModel.secrets[index].backend = 'postgresql';
+      scope.command.viewModel.secrets[index].backend = 'database';
       scope.command.viewModel.secrets[index].policy = 'postgresql--database-url.org--0000--postgres--readwrite';
       scope.command.viewModel.secrets[index].setRole = 'test';
 
-      scope.vaultkeeper.entrypoint = true;
       scope.vaultkeeper.entrypoint = 'entry';
       scope.vaultkeeper.outputPath = 'output';
       scope.vaultkeeper.refresh_interval = 'refresh';
       scope.vaultkeeper.lease_increment = 'increment';
       scope.vaultkeeper.renewal_grace = 'grace';
 
-      scope.command.env['VAULT_ADDR'] = 'vault_addr';
-      scope.command.env['GATEKEEPER_ADDR'] = 'gatekeeper_addr';
-      scope.command.env['CREDENTIAL_PATH'] = 'credential_path';
+      scope.vault.vaultAddress = 'vault_addr';
+      scope.vault.gatekeeperAddress = 'gatekeeper_addr';
+      scope.vault.credentialPath = 'credential_path';
 
       controller.synchronize();
 
-      expect(scope.command.viewModel.secrets.length).toEqual(1);
-      expect(
-        scope.command.env['VAULT_SECRETS'].toEqual({
-          id: 'default',
-          backend: 'postgresql',
-          endpoint: 'database-url.org:0000/postgres',
-          vault_path: 'database/creds/postgresql--database-url.org--0000--postgres--readwrite',
-          schema: 'postgres',
-          policy: 'readwrite',
-          set_role: 'test',
-        }),
+      expect(scope.command.env['VAULT_SECRETS']).toEqual(
+        JSON.stringify([
+          {
+            id: 'default',
+            backend: 'database',
+            endpoint: 'database-url.org:0000/postgres',
+            vault_path: 'database/creds/postgresql--database-url.org--0000--postgres--readwrite',
+            schema: 'postgres',
+            policy: 'postgresql--database-url.org--0000--postgres--readwrite',
+            set_role: 'test',
+          },
+        ]),
       );
 
-      expect(
-        scope.command.env['VAULTKEEPER_CONFIG'].toEqual({
+      expect(scope.command.env['VAULTKEEPER_CONFIG']).toEqual(
+        JSON.stringify({
           entry_cmd: 'entry',
           output_path: 'output',
           refresh_interval: 'refresh',
@@ -79,9 +84,11 @@ describe('dcosServerGroupVaultSecretsController', function() {
         }),
       );
 
-      expect(scope.command.env['VAULT_ADDR'].toEqual('vault_addr'));
-      expect(scope.command.env['GATEKEEPER_ADDR'].toEqual('gatekeeper_addr'));
-      expect(scope.command.env['CREDENTIAL_PATH'].toEqual('credential_path'));
+      expect(scope.command.env['VAULT_ADDR']).toEqual('vault_addr');
+      expect(scope.command.env['GATEKEEPER_ADDR']).toEqual('gatekeeper_addr');
+      expect(scope.command.env['CREDENTIAL_PATH']).toEqual('credential_path');
+
+      expect(scope.command.viewModel.secrets.length).toEqual(1);
     });
 
     it('Vault Secrets spec 3', function() {
@@ -109,10 +116,11 @@ describe('dcosServerGroupVaultSecretsController', function() {
       scope.command.viewModel.secrets[index].backend = 'postgresql';
       scope.command.viewModel.secrets[index].policy = 'postgresql--database-url.org--0000--postgres--readwrite';
       scope.command.viewModel.secrets[index].setRole = 'test';
+      scope.secrets.policy = 'testpolicy';
 
       controller.updatePolicy(index);
 
-      expect(scope.command.viewModel.secrets[index].value).toEqual(scope.command.viewModel.secrets[index].rawValue);
+      expect(scope.command.viewModel.secrets[index].policy).toEqual('testpolicy');
     });
 
     it('Vault Secrets spec 5', function() {
@@ -127,7 +135,7 @@ describe('dcosServerGroupVaultSecretsController', function() {
 
       scope.secrets.policy = 'newPolicy';
 
-      controller.updateValue(index);
+      controller.updatePolicy(index);
 
       expect(scope.command.viewModel.secrets[index].policy).toEqual('newPolicy');
     });
@@ -166,22 +174,27 @@ describe('dcosServerGroupVaultSecretsController', function() {
       scope.command.viewModel.secrets[index].policy = 'postgresql--database-url.org--0000--postgres--readwrite';
       scope.command.viewModel.secrets[index].setRole = 'test';
 
+      scope.vault.vaultAddress = 'vault_addr';
+      scope.vault.gatekeeperAddress = 'gatekeeper_addr';
+      scope.vault.credentialPath = 'credential_path';
+
+      scope.vault.addVaultDockerHost = true;
+      controller.addVaultDockerHost();
+
+      expect(scope.command.docker.parameters).toContain({
+        key: 'add-host',
+        value: scope.vault.vaultAddress,
+      });
+
+      scope.vault.addVaultDockerHost = false;
       controller.addVaultDockerHost();
 
       expect(
-        scope.command.docker.parameters.indexOf({
+        scope.command.docker.parameters.includes({
           key: 'add-host',
           value: scope.vault.vaultAddress,
         }),
-      ).toBeGreaterThan(-1);
-
-      controller.removeVaultDockerHost();
-      expect(
-        scope.command.docker.parameters.indexOf({
-          key: 'add-host',
-          value: scope.vault.vaultAddress,
-        }),
-      ).toEqual(-1);
+      ).toBeFalsy();
     });
 
     it('Vault Secrets spec 9', function() {
@@ -194,50 +207,27 @@ describe('dcosServerGroupVaultSecretsController', function() {
       scope.command.viewModel.secrets[index].policy = 'postgresql--database-url.org--0000--postgres--readwrite';
       scope.command.viewModel.secrets[index].setRole = 'test';
 
+      scope.vault.vaultAddress = 'vault_addr';
+      scope.vault.gatekeeperAddress = 'gatekeeper_addr';
+      scope.vault.credentialPath = 'credential_path';
+
+      scope.vault.addGatekeeperDockerHost = true;
+      controller.addGatekeeperDockerHost();
+
+      expect(scope.command.docker.parameters).toContain({
+        key: 'add-host',
+        value: scope.vault.gatekeeperAddress,
+      });
+
+      scope.vault.addGatekeeperDockerHost = false;
       controller.addGatekeeperDockerHost();
 
       expect(
-        scope.command.docker.parameters.indexOf({
+        scope.command.docker.parameters.includes({
           key: 'add-host',
           value: scope.vault.gatekeeperAddress,
         }),
-      ).toBeGreaterThan(-1);
-
-      controller.removeGatekeeperDockerHost();
-      expect(
-        scope.command.docker.parameters.indexOf({
-          key: 'add-host',
-          value: scope.vault.gatekeeperAddress,
-        }),
-      ).toEqual(-1);
-    });
-
-    it('Vault Secrets spec 10', function() {
-      var index = 0;
-
-      controller.addSecret();
-
-      scope.command.viewModel.secrets[index].name = 'default';
-      scope.command.viewModel.secrets[index].backend = 'postgresql';
-      scope.command.viewModel.secrets[index].policy = 'postgresql--database-url.org--0000--postgres--readwrite';
-      scope.command.viewModel.secrets[index].setRole = 'test';
-
-      controller.addGatekeeperDockerHost();
-
-      expect(
-        scope.command.docker.parameters.indexOf({
-          key: 'add-host',
-          value: scope.vault.gatekeeperAddress,
-        }),
-      ).toBeGreaterThan(-1);
-
-      controller.removeGatekeeperDockerHost();
-      expect(
-        scope.command.docker.parameters.indexOf({
-          key: 'add-host',
-          value: scope.vault.gatekeeperAddress,
-        }),
-      ).toEqual(-1);
+      ).toBeFalsy();
     });
   });
 });

@@ -1,14 +1,16 @@
-
 import { IPromise, module, IQService } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
-
+import { API } from 'core/api/ApiService';
 
 export class SecretManagementService {
-  constructor(private API: Api, private $q: IQService) { 'ngInject'; }
+  constructor(private $q: IQService) {
+    'ngInject';
+  }
 
   public getVaultPolicies(): IPromise<string> {
-    const acls: IPromise<string> = this.API.one('secrets').one('vaultpolicies').get();
+    const acls: IPromise<string> = API.one('secrets')
+      .one('vaultpolicies')
+      .get();
     if (!acls) {
       return this.$q.reject('An error occurred when retrieving the list of Vault policies for Spinnaker applications.');
     }
@@ -16,7 +18,10 @@ export class SecretManagementService {
   }
 
   public getRoles(backend: string = null): IPromise<string> {
-    const roles: IPromise<string> = this.API.one('secrets').one(backend).one('roles').get();
+    const roles: IPromise<string> = API.one('secrets')
+      .one(backend)
+      .one('roles')
+      .get();
 
     if (!roles) {
       return this.$q.reject('An error occurred when retrieving backend policies for ' + backend + '.');
@@ -25,42 +30,57 @@ export class SecretManagementService {
   }
 
   public addGatekeeperPolicies(newPolicies: any): IPromise<string> {
-    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get();
+    const gkPolicies: IPromise<string> = API.one('secrets')
+      .one('gatekeeper')
+      .one('policies')
+      .get();
     let merged = {};
-    return gkPolicies.then((resp) => {
-      const obj = JSON.stringify(resp)
-      const current = JSON.parse(obj)['data'];
-      const npolicies = newPolicies;
-      merged = angular.merge(current, npolicies)
-      return this.updateGatekeeperPolicies(JSON.stringify(merged));
-    }, () => {
-      return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
-    });
+    return gkPolicies.then(
+      resp => {
+        const obj = JSON.stringify(resp);
+        const current = JSON.parse(obj)['data'];
+        const npolicies = newPolicies;
+        merged = angular.merge(current, npolicies);
+        return this.updateGatekeeperPolicies(JSON.stringify(merged));
+      },
+      () => {
+        return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
+      },
+    );
   }
 
   public removeGatekeeperPolicies(removedPolicies: any): IPromise<string> {
-    const gkPolicies: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').get();
+    const gkPolicies: IPromise<string> = API.one('secrets')
+      .one('gatekeeper')
+      .one('policies')
+      .get();
     let current = JSON.parse('{}');
-    return gkPolicies.then((resp) => {
-      const obj = JSON.stringify(resp)
-      current = JSON.parse(obj)['data'];
-      const rpolicies = removedPolicies;
-      Object.keys(rpolicies).forEach((key: string) => {
-      // If key exists, we remove it
-      delete current[key];
-      });
-      return this.updateGatekeeperPolicies(JSON.stringify(current));
-    }, () => {
-      return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
-    });
+    return gkPolicies.then(
+      resp => {
+        const obj = JSON.stringify(resp);
+        current = JSON.parse(obj)['data'];
+        const rpolicies = removedPolicies;
+        Object.keys(rpolicies).forEach((key: string) => {
+          // If key exists, we remove it
+          delete current[key];
+        });
+        return this.updateGatekeeperPolicies(JSON.stringify(current));
+      },
+      () => {
+        return this.$q.reject('An error occurred when attempting to retrieve Gatekeeper policices from Vault.');
+      },
+    );
   }
 
   public getGatekeeperPolicyUpdateUrl(): string {
-    return this.API.baseUrl + '/secrets/gatekeeper/policies';
+    return API.baseUrl + '/secrets/gatekeeper/policies';
   }
 
   private updateGatekeeperPolicies(newPolicies: any): IPromise<string> {
-    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').post(newPolicies);
+    const response: IPromise<string> = API.one('secrets')
+      .one('gatekeeper')
+      .one('policies')
+      .post(newPolicies);
     if (!response) {
       return this.$q.reject('An error occurred when attempting to update the Gatekeeper policies in Vault.');
     }
@@ -68,14 +88,20 @@ export class SecretManagementService {
   }
 
   public reloadGatekeeperPolicies(): IPromise<string> {
-    const response: IPromise<string> = this.API.one('secrets').one('gatekeeper').one('policies').one('reload').post();
+    const response: IPromise<string> = API.one('secrets')
+      .one('gatekeeper')
+      .one('policies')
+      .one('reload')
+      .post();
     if (!response) {
       return this.$q.reject('An error occurred when attempting to get Gatekeeper to reload its policies from Vault.');
     }
-    return response
+    return response;
   }
 }
 
 export const SECRET_MANAGEMENT_SERVICE = 'spinnaker.core.secretManagement.service';
-module(SECRET_MANAGEMENT_SERVICE, [API_SERVICE])
-  .factory('secretManagementService', (API: Api, $q: IQService) => new SecretManagementService(API, $q));
+module(SECRET_MANAGEMENT_SERVICE, []).factory(
+  'secretManagementService',
+  ($q: IQService) => new SecretManagementService($q),
+);
