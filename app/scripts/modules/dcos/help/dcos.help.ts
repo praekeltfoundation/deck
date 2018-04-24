@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'dcos.loadBalancer.group':
@@ -70,7 +69,4 @@ const helpContents: { [key: string]: string } = {
     'Required by the PostgreSQL secret engine to revoke dynamic credentials correctly - the role that owns the database objects.',
 };
 
-export const DCOS_HELP = 'spinnaker.dcos.help.contents';
-module(DCOS_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
